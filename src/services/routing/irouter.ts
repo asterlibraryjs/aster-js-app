@@ -1,5 +1,7 @@
-import { IServiceProvider, ServiceIdentifier } from "@aster-js/ioc";
-import { RouteValues } from "./routing-invocation-context";
+import { ServiceIdentifier } from "@aster-js/ioc";
+import { QueryValues, RouteValues } from "./routing-invocation-context";
+import { IDisposable } from "@aster-js/core";
+import { RouteResolutionContext } from "./route-resolution-context";
 
 export const enum RouterActionResult {
     continue,
@@ -10,5 +12,5 @@ export const IRouter = ServiceIdentifier<IRouter>("IRouter");
 
 export interface IRouter {
     eval(path: string, defaults: RouteValues): Promise<void> | false;
-    createChild(services: IServiceProvider): IRouter;
+    handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> | false;
 }

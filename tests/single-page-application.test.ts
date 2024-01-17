@@ -5,12 +5,12 @@ import { resolveServiceId } from "@aster-js/ioc";
 describe("SinglePageApplication", () => {
 
     it("Should create an empty application", () => {
-        const app = new SinglePageApplication("test", class { configure() { } });
+        const app = SinglePageApplication.create("test").build();
 
         assert.isFalse(app.running, "Application not started");
     });
 
-    it("Should ", async () => {
+    it("Should start a new app", async () => {
         const app = await SinglePageApplication.start("test", () => { });
         assert.isTrue(app.running, "Application started");
     });
@@ -25,7 +25,7 @@ describe("SinglePageApplication", () => {
         });
 
         const id = resolveServiceId(Service);
-        const service =  app.services.get(id, true);
+        const service = app.services.get(id, true);
 
         assert.isTrue(service.initialized, "initialized called");
     });

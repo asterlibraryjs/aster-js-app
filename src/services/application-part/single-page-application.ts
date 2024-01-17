@@ -1,16 +1,24 @@
 import { Constructor } from "@aster-js/core";
-import { IIoCModule, ILogger, IoCKernel, LogLevel, ServiceContract } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, IoCKernel, LogLevel, ServiceContract } from "@aster-js/ioc";
 import { AppConfigureDelegate, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPart } from "./application-part";
 import { ApplicationPartBuilder } from "./application-part-builder";
+import { DefaultApplicationConfigureHandler } from "./default-application-configure-handler";
 
-@ServiceContract(IApplicationPart)
+class SinglePageAppBuilder extends ApplicationPartBuilder {
+
+    protected createApplicationPart(parent: IIoCModule, iocBuilder: IIoCContainerBuilder): IApplicationPart {
+        return new SinglePageApplication(parent, iocBuilder);
+    }
+}
+
 export class SinglePageApplication extends ApplicationPart {
 
-    constructor(appName: string, handlerCtor: Constructor<IAppConfigureHandler>) {
-        const kernel = SinglePageApplication.createKernel();
-        const builder = SinglePageApplication.createApp(kernel, appName, handlerCtor);
-        super(appName, kernel, builder);
+    constructor(
+        parent: IIoCModule,
+        builder: IIoCContainerBuilder
+    ) {
+        super(parent, builder);
     }
 
     private static createKernel() {
@@ -23,22 +31,24 @@ export class SinglePageApplication extends ApplicationPart {
     }
 
     async start(): Promise<boolean> {
-        return await this.parent.start()
-            && await super.start();
+        return await this.parent.start() && await super.start();
     }
 
-    private static createApp(kernel: IIoCModule, appName: string, handlerCtor: Constructor<IAppConfigureHandler>): IApplicationPartBuilder {
-        const builder = kernel.services.createInstance(ApplicationPartBuilder, appName, kernel);
+    static create(appName: string, ...handlerCtors: Constructor<IAppConfigureHandler>[]): IApplicationPartBuilder {
+        const kernel = SinglePageApplication.createKernel();
 
-        const handler = kernel.services.createInstance(handlerCtor);
-        handler.configure(builder);
+        const builder = new SinglePageAppBuilder(appName, kernel);
+        for (const handlerCtor of handlerCtors) {
+            const handler = kernel.services.createInstance(handlerCtor);
+            handler.configure(builder);
+        }
         return builder;
     }
 
     static async start(appName: string, configure: AppConfigureDelegate): Promise<SinglePageApplication> {
-        const app = new SinglePageApplication(appName, class { configure = configure; });
+        const handler = IAppConfigureHandler.create(configure);
+        const app = SinglePageApplication.create(appName, DefaultApplicationConfigureHandler, handler).build();
         await app.start();
-        await app.ready;
-        return app;
+        return <SinglePageApplication>app;
     }
 }

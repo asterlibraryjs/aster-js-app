@@ -1,45 +1,26 @@
 import { Constructor } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, IServiceFactory, IServiceProvider, ISetupIoCContainerBuilder, Optional, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, IoCContainerBuilder, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ISetupIoCContainerBuilder, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
 import { IApplicationPartBuilder } from "../abstraction/iapplication-part-builder";
-import { DefaultRouter } from "../routing/default-router";
 import { INavigationHandler } from "../routing/inavigation-handler";
-import { IRouter } from "../routing/irouter";
 import { RouterAction } from "../routing/irouting-handler";
-import { HyperlinkNavigationHandler } from "../routing/navigation-handlers";
 import { ActionRoutingHandler } from "../routing/routing-handlers";
 import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
+import { ApplicationPart } from "./application-part";
+import { IApplicationPart } from "../abstraction";
 
 export class ApplicationPartBuilder implements IApplicationPartBuilder {
     private readonly _innerBuilder: IIoCContainerBuilder;
 
     constructor(
         partName: string,
-        source: IIoCModule,
-        @Optional(IRouter) private readonly _router?: IRouter
+        private readonly _source: IIoCModule
     ) {
-        this._innerBuilder = source.createChildScope(partName);
+        this._innerBuilder = _source.createChildScope(partName);
         this.initDefaults();
     }
 
     protected initDefaults(): void {
-        const router = this._router;
-
-        if (router) {
-            const desc = IServiceFactory.create(IRouter, (acc) => {
-                const sp = acc.get(IServiceProvider, true);
-                return router.createChild(sp);
-            });
-            this.configure(x => x.addScoped(desc));
-        }
-        else {
-            this.configure(
-                x => {
-                    x.addSingleton(HyperlinkNavigationHandler)
-                        .addScoped(DefaultRouter);
-                }
-            );
-            this.setupMany(INavigationHandler, x => x.start());
-        }
+        this.setupMany(INavigationHandler, x => x.start());
     }
 
     addAction(path: string, action: RouterAction): void {
@@ -75,7 +56,11 @@ export class ApplicationPartBuilder implements IApplicationPartBuilder {
         return new SetupIoCContainerBuilder(this, iocBuilder);
     }
 
-    build(): IIoCModule {
-        return this._innerBuilder.build();
+    build(): IApplicationPart {
+        return this.createApplicationPart(this._source, this._innerBuilder);
+    }
+
+    protected createApplicationPart(parent: IIoCModule, iocBuilder: IIoCContainerBuilder): IApplicationPart {
+        return new ApplicationPart(parent, iocBuilder);
     }
 }

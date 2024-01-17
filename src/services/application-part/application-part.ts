@@ -1,14 +1,13 @@
 import { AbortToken } from "@aster-js/async";
 import { Constructor, IDisposable } from "@aster-js/core";
-import { IIoCModule, ServiceContract, ServiceProvider, ServiceScope } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, ServiceContract, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPartBuilder } from "./application-part-builder";
 
-@ServiceContract(IApplicationPart)
 export class ApplicationPart implements IApplicationPart {
     private readonly _module: IIoCModule;
 
-    get name(): string { return this._name; }
+    get name(): string { return this._module.name; }
 
     get parent(): IIoCModule { return this._parent; }
 
@@ -21,9 +20,8 @@ export class ApplicationPart implements IApplicationPart {
     get services(): ServiceProvider { return this._module.services; }
 
     constructor(
-        private readonly _name: string,
         private readonly _parent: IIoCModule,
-        builder: IApplicationPartBuilder
+        builder: IIoCContainerBuilder
     ) {
         this._module = builder
             .configure(x => x.addInstance(IApplicationPart, this, { scope: ServiceScope.container }))
@@ -43,7 +41,7 @@ export class ApplicationPart implements IApplicationPart {
     }
 
     createChildScope(name: string): IApplicationPartBuilder {
-        return this.services.createInstance(ApplicationPartBuilder, name, this._module);
+        return new ApplicationPartBuilder(name, this._module);
     }
 
     [Symbol.dispose](): void {

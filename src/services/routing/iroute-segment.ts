@@ -7,8 +7,6 @@ export interface IRouteSegment {
     read(ctx: RouteResolutionContext, values: RouteValues): void;
 }
 
-
-
 function shiftOrThrow(ctx: RouteResolutionContext, value: string): void {
     const current = ctx.getAt(0);
     if (current !== value) {

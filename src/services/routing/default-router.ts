@@ -1,43 +1,23 @@
 import { ILogger, IServiceProvider, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
 import { IApplicationPart } from "../abstraction/iapplication-part";
-import { Route } from "./route";
 import { IRouter } from "./irouter";
-import { IRoutingHandler, RouterAction } from "./irouting-handler";
+import { IRoutingHandler } from "./irouting-handler";
 import { RouteResolutionContext } from "./route-resolution-context";
 import { QueryValues, RouteValues } from "./routing-invocation-context";
 import { DisposableHost, IDisposable } from "@aster-js/core";
 
 const SEGMENT_SEPARATOR = "/";
 
-type RouteEntry = readonly [Route, RouterAction];
-
 @ServiceContract(IRouter)
-export class DefaultRouter extends DisposableHost implements IRouter {
-    private readonly _self: this; // this is used to avoid bad reference by proxies
-    private _children: DefaultRouter[];
+export class DefaultRouter implements IRouter {
+    private readonly _activeChildren: IRouter[];
 
     constructor(
         @Many(IRoutingHandler) private readonly _handlers: IRoutingHandler[],
         @IApplicationPart private readonly _application: IApplicationPart,
         @ILogger private readonly _logger: ILogger
     ) {
-        super();
-        this._self = this;
-        this._children = [];
-    }
-
-    createChild(services: IServiceProvider): IRouter {
-        const self = this._self;
-
-        const router = services.createInstance(DefaultRouter);
-        self._children.push(router);
-        router.registerForDispose(
-            IDisposable.create(() => {
-                const idx = self._children.indexOf(router);
-                self._children.splice(idx, 1);
-            })
-        );
-        return router;
+        this._activeChildren = [];
     }
 
     eval(url: string, defaults: RouteValues): Promise<void> | false {
@@ -53,16 +33,16 @@ export class DefaultRouter extends DisposableHost implements IRouter {
         const search = new URLSearchParams(parsedUrl.search);
         const query = Object.fromEntries(search);
 
-        return this.evalContext(ctx, defaults, query);
+        return this.handle(ctx, defaults, query);
     }
 
-    private evalContext(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> | false {
+    handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> | false {
         const handler = this._handlers.find(x => x.route.match(ctx));
         if (!handler) return false;
-        return this.evalCore(handler, ctx, values, query);
+        return this.invokeHandler(handler, ctx, values, query);
     }
 
-    private async evalCore(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> {
+    private async invokeHandler(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> {
         const localValues = handler.route.getRouteValues(ctx);
         const mergedValues = Object.assign({}, values, localValues);
 
@@ -73,12 +53,17 @@ export class DefaultRouter extends DisposableHost implements IRouter {
             this._logger.log(LogLevel.error, "Error handled during route handler invocation", err)
         }
 
-        if (ctx.remaining !== 0) {
-            for (const child of this._children) {
-                const evalResult = child.evalContext(ctx, values, query);
-                if (evalResult === false) continue;
-                await evalResult;
-            }
+        if (ctx.remaining === 0) return;
+
+        for (const childApp of this._application) {
+            const router = childApp.services.get(IRouter);
+            if (!router) continue;
+
+            const evalResult = router.handle(ctx, values, query);
+            if (evalResult === false) continue;
+
+            await evalResult;
+            break;
         }
     }
 }

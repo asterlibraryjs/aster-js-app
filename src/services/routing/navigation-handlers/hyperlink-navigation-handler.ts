@@ -16,11 +16,12 @@ export class HyperlinkNavigationHandler implements INavigationHandler {
     ) { }
 
     start(): void {
+        if (this._registration) return;
+
         this._registration = dom.on(this._renderer.root, "click", ev => this.onRootClick(<UIEvent>ev));
     }
 
     private onRootClick(ev: UIEvent): void {
-        alert(0)
         const anchor = this.findAnchor(ev);
         if (anchor) {
             const url = new URL(anchor.href, location.href);
@@ -41,9 +42,10 @@ export class HyperlinkNavigationHandler implements INavigationHandler {
 
     stop(): void {
         IDisposable.safeDispose(this._registration);
+        this._registration;
     }
 
-    [IDisposable.dispose](): void {
+    [Symbol.dispose](): void {
         this.stop();
     }
 }
