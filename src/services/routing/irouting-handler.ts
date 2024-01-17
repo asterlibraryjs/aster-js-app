@@ -1,6 +1,6 @@
 import { ServiceIdentifier } from "@aster-js/ioc";
-import { Route } from "./iroute-segment";
-import { RouteValues, RoutingInvocationContext } from "./routing-invocation-context";
+import { Route } from "./route";
+import { RouteData, RoutingInvocationContext } from "./routing-invocation-context";
 import { IApplicationPart } from "../abstraction";
 
 export type RouterAction = (ctx: RoutingInvocationContext) => Promise<void> | void;
@@ -8,5 +8,5 @@ export type RouterAction = (ctx: RoutingInvocationContext) => Promise<void> | vo
 export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>("IRoutingHandler");
 export interface IRoutingHandler {
     readonly route: Route;
-    handle(values: RouteValues, app: IApplicationPart): Promise<void>;
+    handle(data: RouteData, app: IApplicationPart): Promise<void>;
 }

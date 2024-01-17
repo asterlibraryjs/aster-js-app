@@ -1,5 +1,5 @@
 import { AbortToken } from "@aster-js/async";
-import { Constructor, IDisposable, Lazy } from "@aster-js/core";
+import { Constructor, IDisposable } from "@aster-js/core";
 import { IIoCModule, ServiceContract, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPartBuilder } from "./application-part-builder";
@@ -26,9 +26,8 @@ export class ApplicationPart implements IApplicationPart {
         builder: IApplicationPartBuilder
     ) {
         this._module = builder
-            .configure(x => x.addInstance(this, { scope: ServiceScope.container }))
+            .configure(x => x.addInstance(IApplicationPart, this, { scope: ServiceScope.container }))
             .build();
-        this._module.services.get(IApplicationPart)
     }
 
     start(): Promise<boolean> { return this._module.start(); }

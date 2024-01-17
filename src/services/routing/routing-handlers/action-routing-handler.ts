@@ -1,7 +1,7 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { Route } from "../iroute-segment";
+import { Route } from "../route";
 import { IRoutingHandler, RouterAction } from "../irouting-handler";
-import { RouteValues } from "../routing-invocation-context";
+import { RouteData } from "../routing-invocation-context";
 import { IApplicationPart } from "src/services/abstraction";
 
 
@@ -17,8 +17,8 @@ export class ActionRoutingHandler implements IRoutingHandler {
         this._action = action;
     }
 
-    handle(values: RouteValues, app: IApplicationPart): Promise<void> {
-        const result = this._action({ values, app, route: this.route });
+    handle(data: RouteData, app: IApplicationPart): Promise<void> {
+        const result = this._action({ data, app, route: this.route });
         if(result instanceof Promise) return result;
         return Promise.resolve();
     }

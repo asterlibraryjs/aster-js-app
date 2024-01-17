@@ -1,4 +1,3 @@
-
 export class RouteResolutionContext implements Iterable<string>{
     private readonly _segments: string[];
     private readonly _initialSize: number;
@@ -7,13 +6,17 @@ export class RouteResolutionContext implements Iterable<string>{
 
     get initialSize(): number { return this._initialSize; }
 
-    constructor(path: string) {
-        this._segments = path.split("/").filter(Boolean);
+    constructor(segments: Iterable<string>) {
+        this._segments = [...segments];
         this._initialSize = this._segments.length;
     }
 
     getAt(index: number): string | undefined {
         return this._segments[index];
+    }
+
+    peek(): string | undefined {
+        return this._segments[0];
     }
 
     shift(): string | undefined {

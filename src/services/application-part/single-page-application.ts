@@ -1,6 +1,6 @@
 import { Constructor } from "@aster-js/core";
-import { IIoCModule, IoCKernel, IoCModule, ServiceContract } from "@aster-js/ioc";
-import { IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
+import { IIoCModule, ILogger, IoCKernel, LogLevel, ServiceContract } from "@aster-js/ioc";
+import { AppConfigureDelegate, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPart } from "./application-part";
 import { ApplicationPartBuilder } from "./application-part-builder";
 
@@ -15,7 +15,10 @@ export class SinglePageApplication extends ApplicationPart {
 
     private static createKernel() {
         const builder = IoCKernel.create();
-        // builder.configure(x => { });
+        builder.configure(x => {
+            x.addConsoleLogger(LogLevel.trace)
+                .addSystemClock();
+        });
         return builder.build();
     }
 
@@ -24,7 +27,7 @@ export class SinglePageApplication extends ApplicationPart {
             && await super.start();
     }
 
-    private static createApp(kernel: IIoCModule, appName: string, handlerCtor: Constructor<IAppConfigureHandler>) : IApplicationPartBuilder {
+    private static createApp(kernel: IIoCModule, appName: string, handlerCtor: Constructor<IAppConfigureHandler>): IApplicationPartBuilder {
         const builder = kernel.services.createInstance(ApplicationPartBuilder, appName, kernel);
 
         const handler = kernel.services.createInstance(handlerCtor);
@@ -32,9 +35,10 @@ export class SinglePageApplication extends ApplicationPart {
         return builder;
     }
 
-    static async start(appName: string, handlerCtor: Constructor<IAppConfigureHandler>): Promise<SinglePageApplication> {
-        const app = new SinglePageApplication(appName, handlerCtor);
+    static async start(appName: string, configure: AppConfigureDelegate): Promise<SinglePageApplication> {
+        const app = new SinglePageApplication(appName, class { configure = configure; });
         await app.start();
+        await app.ready;
         return app;
     }
 }
