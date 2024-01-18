@@ -55,7 +55,7 @@ export class DefaultRouter implements IRouter {
 
         if (ctx.remaining === 0) return;
 
-        for (const childApp of this._application) {
+        for await (const childApp of this._application) {
             const router = childApp.services.get(IRouter);
             if (!router) continue;
 

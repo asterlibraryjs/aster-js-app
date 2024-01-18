@@ -1,6 +1,6 @@
 import { AbortToken } from "@aster-js/async";
 import { Constructor, IDisposable } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ServiceContract, ServiceProvider, ServiceScope } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPartBuilder } from "./application-part-builder";
 import { Memoize } from "@aster-js/decorators";
@@ -9,6 +9,8 @@ export class ApplicationPart implements IApplicationPart {
     private readonly _module: IIoCModule;
 
     get name(): string { return this._module.name; }
+
+    get path(): string { return this._module.path; }
 
     get parent(): IIoCModule { return this._parent; }
 
@@ -50,7 +52,7 @@ export class ApplicationPart implements IApplicationPart {
         IDisposable.safeDispose(this._module);
     }
 
-    *[Symbol.iterator](): Iterator<IIoCModule> {
-        yield* this._module;
+    [Symbol.asyncIterator](): AsyncIterator<IIoCModule, any, undefined> {
+        return this._module[Symbol.asyncIterator]();
     }
 }
