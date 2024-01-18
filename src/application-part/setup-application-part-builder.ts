@@ -1,6 +1,6 @@
 import type { Constructor } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ISetupIoCContainerBuilder, IoCModule, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ServiceIdentifier, ServiceSetupDelegate, SetupErrorHandlerDelegate } from "@aster-js/ioc";
-import { IApplicationPart, IApplicationPartBuilder } from "../abstraction";
+import { IIoCContainerBuilder, IIoCModule, ISetupIoCContainerBuilder, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ServiceIdentifier, ServiceSetupDelegate, SetupErrorHandlerDelegate } from "@aster-js/ioc";
+import { IApplicationPartBuilder } from "../abstraction";
 import { RouterAction } from "../routing/irouting-handler";
 import { ServiceRouterAction } from "../routing/routing-handlers/service-routing-handler";
 
