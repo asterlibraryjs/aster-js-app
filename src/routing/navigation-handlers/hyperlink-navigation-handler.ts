@@ -1,7 +1,6 @@
 import { IDisposable } from "@aster-js/core";
 import { dom } from "@aster-js/dom";
 import { ServiceContract } from "@aster-js/ioc";
-import { IViewRender } from "../../views/iview-renderer";
 import { INavigationHandler } from "../inavigation-handler";
 
 import { IRouter } from "../irouter";
@@ -11,14 +10,13 @@ export class HyperlinkNavigationHandler implements INavigationHandler {
     private _registration?: IDisposable;
 
     constructor(
-        @IRouter private readonly _router: IRouter,
-        @IViewRender private readonly _renderer: IViewRender
+        @IRouter private readonly _router: IRouter
     ) { }
 
     start(): void {
         if (this._registration) return;
 
-        this._registration = dom.on(this._renderer.root, "click", ev => this.onRootClick(<UIEvent>ev));
+        this._registration = dom.on(document.body, "click", ev => this.onRootClick(<UIEvent>ev));
     }
 
     private onRootClick(ev: UIEvent): void {

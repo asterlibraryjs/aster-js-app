@@ -1,3 +1,3 @@
-export * from "./services/abstraction";
-export * from "./services/application-part";
-export * from "./services/routing";
+export * from "./abstraction";
+export * from "./application-part";
+export * from "./routing";

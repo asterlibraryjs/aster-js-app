@@ -2,7 +2,7 @@ import { ServiceContract } from "@aster-js/ioc";
 import { Route } from "../route";
 import { IRoutingHandler, RouterAction } from "../irouting-handler";
 import { RouteData } from "../routing-invocation-context";
-import { IApplicationPart } from "src/services/abstraction";
+import { IApplicationPart } from "../../abstraction";
 
 
 @ServiceContract(IRoutingHandler)

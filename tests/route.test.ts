@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { StringRouteSegment, Route, StaticRouteSegment, NumberRouteSegment, RouteResolutionContext } from "../src";
+import { Route, RouteResolutionContext } from "../src";
 import { assertNumberSegment, assertStaticSegment, assertStringSegment } from "./route-asserts";
 
 describe("Route", () => {
