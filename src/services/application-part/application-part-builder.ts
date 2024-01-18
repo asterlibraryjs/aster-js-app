@@ -7,6 +7,7 @@ import { ActionRoutingHandler } from "../routing/routing-handlers";
 import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
 import { ApplicationPart } from "./application-part";
 import { IApplicationPart } from "../abstraction";
+import { ServiceRouterAction, ServiceRoutingHandler } from "../routing/routing-handlers/service-routing-handler";
 
 export class ApplicationPartBuilder implements IApplicationPartBuilder {
     private readonly _innerBuilder: IIoCContainerBuilder;
@@ -23,13 +24,26 @@ export class ApplicationPartBuilder implements IApplicationPartBuilder {
         this.setupMany(INavigationHandler, x => x.start());
     }
 
-    addAction(path: string, action: RouterAction): void {
-        this.configure(x =>
-            x.addScoped(ActionRoutingHandler, {
-                baseArgs: [path, action],
-                scope: ServiceScope.container
-            })
-        );
+    addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IIoCContainerBuilder;
+    addAction(path: string, action: RouterAction): IIoCContainerBuilder;
+    addAction(path: string, actionOrServiceId: RouterAction | ServiceIdentifier, action?: ServiceRouterAction): IIoCContainerBuilder {
+        if (ServiceIdentifier.is(actionOrServiceId)) {
+            this.configure(x =>
+                x.addScoped(ServiceRoutingHandler, {
+                    baseArgs: [path, actionOrServiceId, action],
+                    scope: ServiceScope.container
+                })
+            );
+        }
+        else {
+            this.configure(x =>
+                x.addScoped(ActionRoutingHandler, {
+                    baseArgs: [path, actionOrServiceId],
+                    scope: ServiceScope.container
+                })
+            );
+        }
+        return this;
     }
 
     configure(action: IoCModuleConfigureDelegate): IIoCContainerBuilder {

@@ -1,4 +1,4 @@
-import { Constructor } from "@aster-js/core";
+import { Constructor, asserts } from "@aster-js/core";
 import { IIoCContainerBuilder, IIoCModule, IoCKernel, LogLevel, ServiceContract } from "@aster-js/ioc";
 import { AppConfigureDelegate, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPart } from "./application-part";
@@ -49,6 +49,7 @@ export class SinglePageApplication extends ApplicationPart {
         const handler = IAppConfigureHandler.create(configure);
         const app = SinglePageApplication.create(appName, DefaultApplicationConfigureHandler, handler).build();
         await app.start();
-        return <SinglePageApplication>app;
+        asserts.instanceOf(app, SinglePageApplication);
+        return app;
     }
 }

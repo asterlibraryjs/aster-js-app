@@ -1,4 +1,12 @@
 import { SinglePageApplication } from "../../src"
-import { MainConfigureHandler } from "./configure-handlers/main-configure-handler";
+import { DefaultRendererService, IRendererService } from "./services/renderer-service";
 
-export default SinglePageApplication.start("Library", MainConfigureHandler);
+export default SinglePageApplication.start("Library", (builder) => {
+    builder.configure(x => x.addSingleton(DefaultRendererService));
+
+    builder.addAction<IRendererService>(
+        "/{bob}",
+        IRendererService,
+        (renderer, data) => renderer.render(`Bob is equal to: ${data.values["bob"]}`)
+    );
+});

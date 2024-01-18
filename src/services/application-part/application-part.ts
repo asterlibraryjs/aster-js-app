@@ -3,6 +3,7 @@ import { Constructor, IDisposable } from "@aster-js/core";
 import { IIoCContainerBuilder, IIoCModule, ServiceContract, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPartBuilder } from "./application-part-builder";
+import { Memoize } from "@aster-js/decorators";
 
 export class ApplicationPart implements IApplicationPart {
     private readonly _module: IIoCModule;
@@ -13,7 +14,8 @@ export class ApplicationPart implements IApplicationPart {
 
     get running(): boolean { return this._module.running; }
 
-    get ready(): PromiseLike<void> { return this._module.ready; }
+    @Memoize
+    get ready(): PromiseLike<this> { return this._module.ready.then(() => this); }
 
     get abortToken(): AbortToken { return this._module.abortToken; }
 
