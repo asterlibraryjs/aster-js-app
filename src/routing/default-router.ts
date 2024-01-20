@@ -18,7 +18,7 @@ export class DefaultRouter implements IRouter {
     }
 
     eval(url: string, defaults: RouteValues = {}): Promise<void> | false {
-        const parsedUrl = new URL(url);
+        const parsedUrl = new URL(url, location.origin);
 
         let path = parsedUrl.pathname;
         if (path.startsWith(SEGMENT_SEPARATOR)) path = path.substring(1);
