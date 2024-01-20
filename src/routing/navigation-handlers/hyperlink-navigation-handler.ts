@@ -6,7 +6,7 @@ import { INavigationHandler } from "../inavigation-handler";
 import { IRouter } from "../irouter";
 
 @ServiceContract(INavigationHandler)
-export class HyperlinkNavigationHandler implements INavigationHandler {
+export class HyperlinkNavigationHandler implements INavigationHandler, IDisposable {
     private _registration?: IDisposable;
 
     constructor(
@@ -21,14 +21,22 @@ export class HyperlinkNavigationHandler implements INavigationHandler {
 
     private onRootClick(ev: UIEvent): void {
         const anchor = this.findAnchor(ev);
-        if (anchor) {
-            const url = new URL(anchor.href, location.href);
-            if (url.origin === location.origin) {
-                const result = this._router.eval(url.pathname, {});
-                if (result !== false) {
-                    ev.preventDefault();
-                }
-            }
+        if (!anchor) return;
+
+        const url = new URL(anchor.href, location.href);
+        if (location.origin !== url.origin) return;
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        if (location.href === url.href) return;
+
+        const result = this._router.eval(url.pathname);
+        if (result) {
+            history.pushState({}, anchor.innerText, url);
+        }
+        else {
+            location.assign(url);
         }
     }
 

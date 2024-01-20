@@ -10,18 +10,15 @@ const SEGMENT_SEPARATOR = "/";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
-    private readonly _activeChildren: IRouter[];
-
     constructor(
         @Many(IRoutingHandler) private readonly _handlers: IRoutingHandler[],
         @IApplicationPart private readonly _application: IApplicationPart,
         @ILogger private readonly _logger: ILogger
     ) {
-        this._activeChildren = [];
     }
 
-    eval(url: string, defaults: RouteValues): Promise<void> | false {
-        const parsedUrl = new URL(url);
+    eval(url: string, defaults: RouteValues = {}): Promise<void> | false {
+        const parsedUrl = new URL(url, location.origin);
 
         let path = parsedUrl.pathname;
         if (path.startsWith(SEGMENT_SEPARATOR)) path = path.substring(1);

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { Route, RouteResolutionContext } from "../src";
-import { assertNumberSegment, assertStaticSegment, assertStringSegment } from "./route-asserts";
+import { assertEnumSegment, assertNumberSegment, assertStaticSegment, assertStringSegment } from "./route-asserts";
 
 describe("Route", () => {
 
@@ -30,6 +30,35 @@ describe("Route", () => {
 
         assert.isTrue(segment.match("hello"));
         assert.isFalse(segment.match(undefined));
+    });
+
+    it("Should parse a single dynamic enum segment", () => {
+        const route = Route.parse("/:bob<yellow|blue>");
+
+        const segments = [...route];
+
+        assert.equal(1, segments.length);
+
+        const segment = segments[0];
+        assertEnumSegment(segment, "bob", false);
+
+        assert.isTrue(segment.match("yellow"));
+        assert.isFalse(segment.match("red"));
+    });
+
+    it("Should parse a single dynamic enum segment with default value", () => {
+        const route = Route.parse("/:bob<yellow|blue>?transparent");
+
+        const segments = [...route];
+
+        assert.equal(1, segments.length);
+
+        const segment = segments[0];
+        assertEnumSegment(segment, "bob", true, "transparent");
+
+        assert.isTrue(segment.match("yellow"), "1");
+        assert.isTrue(segment.match(undefined),"2");
+        assert.isFalse(segment.match("transparent"),"3");
     });
 
     it("Should parse a single dynamic string optional segment", () => {
@@ -85,13 +114,22 @@ describe("Route", () => {
         assertNumberSegment(segments[4], "id", true, "");
     });
 
-    it("Should reject relative url in non relative context", () => {
-        const route = Route.parse("/items/:item/field/:field?description/:+id?");
-        const ctx = new RouteResolutionContext(["items", "robots", "field","title","55"]);
+    it("Should get all route values", () => {
+        const route = Route.parse("/items/:item/:mode<get|set>/field/:field?description/:+id?");
+        const ctx = new RouteResolutionContext("items/robots/set/field/title/55".split("/"));
 
         const values = route.getRouteValues(ctx);
 
-        assert.deepEqual({ item: "robots", field: "title", id: 55 }, values);
+        assert.deepEqual({ item: "robots", mode: "set", field: "title", id: 55 }, values);
+    });
+
+    it("Should get all route values", () => {
+        const route1 = Route.parse("/items/:item/:mode<get|set>");
+        const route2 = Route.parse("/items/:item/:mode");
+        const ctx = new RouteResolutionContext("items/robots/bob".split("/"));
+
+        assert.isFalse(route1.match(ctx));
+        assert.isTrue(route2.match(ctx));
     });
 
     it("Should read a wildcarded route", () => {
@@ -100,7 +138,7 @@ describe("Route", () => {
         assert.isTrue(route.wildcard, "Is wildcard");
         assert.isFalse(route.relative, "Is relative");
 
-        const ctx = new RouteResolutionContext(["items", "robots", "field","title","55"]);
+        const ctx = new RouteResolutionContext(["items", "robots", "field", "title", "55"]);
 
         const match = route.match(ctx);
 
