@@ -1,9 +1,8 @@
-import { IDisposable } from "@aster-js/core";
 import { ServiceIdentifier } from "@aster-js/ioc";
 
 export const INavigationHandler = ServiceIdentifier<INavigationHandler>("INavigationHandler");
 
-export interface INavigationHandler extends IDisposable {
+export interface INavigationHandler {
     start(): void;
     stop(): void;
 }

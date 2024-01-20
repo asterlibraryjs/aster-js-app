@@ -5,7 +5,7 @@ export default SinglePageApplication.start("Library", (builder) => {
     builder.configure(x => x.addSingleton(DefaultRendererService));
 
     builder.addAction<IRendererService>(
-        "/{bob}",
+        "/:bob/*",
         IRendererService,
         (renderer, data) => renderer.render(`Bob is equal to: ${data.values["bob"]}`)
     );

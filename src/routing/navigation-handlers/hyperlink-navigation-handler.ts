@@ -6,7 +6,7 @@ import { INavigationHandler } from "../inavigation-handler";
 import { IRouter } from "../irouter";
 
 @ServiceContract(INavigationHandler)
-export class HyperlinkNavigationHandler implements INavigationHandler {
+export class HyperlinkNavigationHandler implements INavigationHandler, IDisposable {
     private _registration?: IDisposable;
 
     constructor(
@@ -24,7 +24,7 @@ export class HyperlinkNavigationHandler implements INavigationHandler {
         if (anchor) {
             const url = new URL(anchor.href, location.href);
             if (url.origin === location.origin) {
-                const result = this._router.eval(url.pathname, {});
+                const result = this._router.eval(url.pathname);
                 if (result !== false) {
                     ev.preventDefault();
                 }

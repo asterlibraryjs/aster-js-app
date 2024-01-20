@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { IRouteSegment, NumberRouteSegment, StaticRouteSegment, StringRouteSegment } from "../src";
+import { EnumRouteSegment, IRouteSegment, NumberRouteSegment, StaticRouteSegment, StringRouteSegment } from "../src";
 
 
 export function assertStaticSegment(segment: IRouteSegment, expected: string): asserts segment is StaticRouteSegment {
@@ -13,6 +13,15 @@ export function assertStringSegment(segment: IRouteSegment, expectedName: string
     assert.instanceOf(segment, StringRouteSegment);
 
     const staticRoute = <StringRouteSegment>segment;
+    assert.equal(expectedName, staticRoute.name);
+    assert.equal(shouldBeOptional, staticRoute.optional);
+    assert.equal(expectedDefaultValue, staticRoute.defaultValue);
+}
+
+export function assertEnumSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue?: string): asserts segment is StringRouteSegment {
+    assert.instanceOf(segment, EnumRouteSegment);
+
+    const staticRoute = <EnumRouteSegment>segment;
     assert.equal(expectedName, staticRoute.name);
     assert.equal(shouldBeOptional, staticRoute.optional);
     assert.equal(expectedDefaultValue, staticRoute.defaultValue);

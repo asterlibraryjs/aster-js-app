@@ -1,4 +1,4 @@
-import { IRouteSegment, WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment, NumberRouteSegment, StringRouteSegment } from "./iroute-segment";
+import { IRouteSegment, WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment, NumberRouteSegment, StringRouteSegment, EnumRouteSegment } from "./iroute-segment";
 import { RouteResolutionContext } from "./route-resolution-context";
 import { RouteValues } from "./routing-invocation-context";
 import { ASSIGN_CHAR, NULLABLE_CHAR, SEGMENT_SEPARATOR, WILDCARD_CHAR, RELATIVE_CHAR } from "./routing-constants";
@@ -88,10 +88,16 @@ export class Route implements Iterable<IRouteSegment>{
             }
         }
     }
-
+    // url/:value<enum|enum|enum>
     private static createDynamicSegment(name: string, optional: boolean, defaultValue?: string) {
         if (name.startsWith("+")) {
             return new NumberRouteSegment(name.substring(1), optional, defaultValue);
+        }
+        const idx = name.indexOf("<");
+        if (idx !== -1 && name.endsWith(">")) {
+            const values = name.substring(idx + 1, name.length - 2).split("|");
+            name = name.substring(0, idx);
+            return new EnumRouteSegment(name, values, optional, defaultValue);
         }
         return new StringRouteSegment(name, optional, defaultValue);
     }

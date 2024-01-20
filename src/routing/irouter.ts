@@ -11,6 +11,6 @@ export const enum RouterActionResult {
 export const IRouter = ServiceIdentifier<IRouter>("IRouter");
 
 export interface IRouter {
-    eval(path: string, defaults: RouteValues): Promise<void> | false;
+    eval(path: string, defaults?: RouteValues): Promise<void> | false;
     handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> | false;
 }

@@ -91,6 +91,25 @@ export class StringRouteSegment implements IRouteSegment {
     }
 }
 
+export class EnumRouteSegment extends StringRouteSegment {
+
+    constructor(
+        name: string,
+        private readonly _enums: string[],
+        optional: boolean,
+        defaultValue?: string
+    ) {
+        super(name, optional, defaultValue);
+    }
+
+    match(segment: string | undefined): boolean {
+        if (typeof segment === "undefined") {
+            return this.optional;
+        }
+        return this._enums.indexOf(segment) !== -1;
+    }
+}
+
 export class NumberRouteSegment extends StringRouteSegment {
 
     match(segment: string | undefined): boolean {
