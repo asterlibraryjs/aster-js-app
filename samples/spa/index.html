@@ -10,13 +10,24 @@
             background-color: rgb(24, 34, 41);
             color:rgb(220, 255, 245);
         }
-        a {
+        nav{
+            display: flex;
+        }
+        nav > a {
+            padding: 5px 12px;
+            margin-left:5px;
             color:rgb(186, 234, 220);
+            background-color: rgb(37, 53, 65);
+            text-decoration: none;
         }
     </style>
 </head>
 <body style="background-color:rgb(24, 34, 41);color:rgb(220, 255, 245)">
-    Hey !! <a href="/bob/hello">Click</a>
+
+    <nav>
+        <a href="/profile/555">Profile</a>
+        <a href="/settings/555">Settings</a>
+    </nav>
 
     <script src="demo.min.js"></script>
 </body>
