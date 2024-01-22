@@ -1,20 +1,18 @@
 import { Constructor } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, IoCContainerBuilder, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ISetupIoCContainerBuilder, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
-import { IApplicationPartBuilder } from "../abstraction/iapplication-part-builder";
-import { INavigationHandler } from "../routing/inavigation-handler";
-import { RouterAction } from "../routing/irouting-handler";
-import { ActionRoutingHandler } from "../routing/routing-handlers";
+import { IIoCContainerBuilder, IIoCModule, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ISetupIoCContainerBuilder, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
+import { IApplicationPartBuilder, IApplicationPart, IAppConfigureHandler, AppConfigureDelegate, CallbackConfigureHandler, configure } from "../abstraction";
 import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
-import { ApplicationPart } from "./application-part";
-import { IApplicationPart } from "../abstraction";
-import { ServiceRouterAction, ServiceRoutingHandler } from "../routing/routing-handlers/service-routing-handler";
+import { INavigationHandler, ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction } from "../routing";
+import { Delayed } from "@aster-js/async";
+import { PartLoaderRoutingHandler } from "../routing/routing-handlers/part-loader-routing-handler";
 
-export class ApplicationPartBuilder implements IApplicationPartBuilder {
+export abstract class ApplicationPartBuilder implements IApplicationPartBuilder {
     private readonly _innerBuilder: IIoCContainerBuilder;
 
     constructor(
         partName: string,
-        private readonly _source: IIoCModule
+        private readonly _source: IIoCModule,
+        private readonly _result: Delayed<IApplicationPart>
     ) {
         this._innerBuilder = _source.createChildScope(partName);
         this.initDefaults();
@@ -24,9 +22,27 @@ export class ApplicationPartBuilder implements IApplicationPartBuilder {
         this.setupMany(INavigationHandler, x => x.start());
     }
 
-    addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IIoCContainerBuilder;
-    addAction(path: string, action: RouterAction): IIoCContainerBuilder;
-    addAction(path: string, actionOrServiceId: RouterAction | ServiceIdentifier, action?: ServiceRouterAction): IIoCContainerBuilder {
+    addPart(path: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): IApplicationPartBuilder {
+        const ctor = this.resolveConfigHandler(configHandler);
+        this.configure(x =>
+            x.addScoped(PartLoaderRoutingHandler, {
+                baseArgs: [path, ctor],
+                scope: ServiceScope.container
+            })
+        );
+        return this;
+    }
+
+    private resolveConfigHandler(configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Constructor<IAppConfigureHandler>{
+        if(configure in configHandler ){
+            return <Constructor<IAppConfigureHandler>>configHandler;
+        }
+        return IAppConfigureHandler.create(<AppConfigureDelegate>configHandler)
+    }
+
+    addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IApplicationPartBuilder;
+    addAction(path: string, action: RouterAction): IApplicationPartBuilder;
+    addAction(path: string, actionOrServiceId: RouterAction | ServiceIdentifier, action?: ServiceRouterAction): IApplicationPartBuilder {
         if (ServiceIdentifier.is(actionOrServiceId)) {
             this.configure(x =>
                 x.addScoped(ServiceRoutingHandler, {
@@ -71,10 +87,10 @@ export class ApplicationPartBuilder implements IApplicationPartBuilder {
     }
 
     build(): IApplicationPart {
-        return this.createApplicationPart(this._source, this._innerBuilder);
+        const part = this.createApplicationPart(this._source, this._innerBuilder);
+        this._result.set(part);
+        return part;
     }
 
-    protected createApplicationPart(parent: IIoCModule, iocBuilder: IIoCContainerBuilder): IApplicationPart {
-        return new ApplicationPart(parent, iocBuilder);
-    }
+    protected abstract createApplicationPart(parent: IIoCModule, iocBuilder: IIoCContainerBuilder): IApplicationPart;
 }

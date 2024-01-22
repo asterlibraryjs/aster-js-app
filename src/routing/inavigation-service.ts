@@ -2,6 +2,10 @@ import { ServiceContract, ServiceIdentifier } from "@aster-js/ioc";
 
 export const INavigationService = ServiceIdentifier<INavigationService>("INavigationService");
 
+/**
+ * Service ID and Implementation for a service that handle navigation properly
+ * in the context of an Application Part
+ */
 export interface INavigationService {
     /**
      * Trigger a navigation in the browser
@@ -12,7 +16,8 @@ export interface INavigationService {
 }
 
 @ServiceContract(INavigationService)
-export class NavigationService implements INavigationService {
+export class DefaultNavigationService implements INavigationService {
+
     navigate(relativeUrl: string, replace: boolean): void {
         const url = new URL(relativeUrl);
         if (replace) {

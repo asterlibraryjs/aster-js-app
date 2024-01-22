@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { IRouter, SinglePageApplication } from "../src";
+import { IAppConfigureHandler, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
 
 describe("DefaultRouter", () => {
 
@@ -26,20 +26,8 @@ describe("DefaultRouter", () => {
     it("Should create a child module and continue to load the route", async () => {
         let called = false;
         const app = await SinglePageApplication.start("test", x => {
-            x.addAction("/page/:page/*", async (ctx) => {
-
-                const pageName = ctx.data.values["page"];
-
-                assert.equal("species", pageName);
-
-                const builder = ctx.app.createChildScope(String(pageName));
-                builder.addAction("~/view/:view", x => {
-                    called = true;
-                    assert.equal("species", ctx.data.values["page"]);
-                    assert.equal("vertebrate", ctx.data.values["view"]);
-                });
-
-                await builder.build().start();
+            x.addPart("/page/:app/*", x => {
+                x.addAction("~/view/:view", _ => { called = true; });
             });
         });
 
@@ -52,5 +40,4 @@ describe("DefaultRouter", () => {
 
         assert.isTrue(called);
     });
-
 });

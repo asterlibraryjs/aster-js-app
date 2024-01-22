@@ -1,8 +1,7 @@
 import type { Constructor } from "@aster-js/core";
 import { IIoCContainerBuilder, IIoCModule, ISetupIoCContainerBuilder, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ServiceIdentifier, ServiceSetupDelegate, SetupErrorHandlerDelegate } from "@aster-js/ioc";
-import { IApplicationPartBuilder } from "../abstraction";
-import { RouterAction } from "../routing/irouting-handler";
-import { ServiceRouterAction } from "../routing/routing-handlers/service-routing-handler";
+import { IAppConfigureHandler, IApplicationPartBuilder } from "../abstraction";
+import { RouterAction, ServiceRouterAction } from "../routing";
 
 export class SetupIoCContainerBuilder implements IApplicationPartBuilder {
 
@@ -26,9 +25,13 @@ export class SetupIoCContainerBuilder implements IApplicationPartBuilder {
         return this._appBuilder.use(action);
     }
 
-    addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IIoCContainerBuilder;
-    addAction(path: string, action: RouterAction): IIoCContainerBuilder;
-    addAction(path: string, actionOrServiceId: RouterAction | ServiceIdentifier, action?: ServiceRouterAction): IIoCContainerBuilder {
+    addPart(path: string, configHandler: Constructor<IAppConfigureHandler>): IApplicationPartBuilder {
+        return this._appBuilder.addPart(path, configHandler);
+    }
+
+    addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IApplicationPartBuilder;
+    addAction(path: string, action: RouterAction): IApplicationPartBuilder;
+    addAction(path: string, actionOrServiceId: RouterAction | ServiceIdentifier, action?: ServiceRouterAction): IApplicationPartBuilder {
         return this._appBuilder.addAction(path, <ServiceIdentifier>actionOrServiceId, action!);
     }
 
