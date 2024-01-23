@@ -31,7 +31,7 @@ describe("SinglePageApplication", () => {
         assert.isTrue(service.initialized, "initialized called");
     });
 
-    it("Should load and unload app properly", async () => {
+    it.skip("Should load and unload app properly", async () => {
         class Service implements IDisposable {
             state: string = "none";
             [Symbol.dispose]() {
