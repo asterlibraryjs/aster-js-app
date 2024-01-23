@@ -2,6 +2,7 @@ import { ServiceScope } from "@aster-js/ioc";
 import { IApplicationPartBuilder, IApplicationPart } from "../abstraction";
 import { configure, IAppConfigureHandler } from "../abstraction/iapp-configure-handler";
 import { HyperlinkNavigationHandler, DefaultRouter, DefaultNavigationHandler, HistoryNavigationHandler } from "../routing";
+import { IApplicationPartLifecycle, setup } from "./iapplication-part-lifecycle";
 
 export class DefaultApplicationConfigureHandler implements IAppConfigureHandler {
     [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
