@@ -1,10 +1,9 @@
-import { ILogger, IServiceProvider, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
+import { ILogger, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
 import { IApplicationPart } from "../abstraction/iapplication-part";
 import { IRouter } from "./irouter";
 import { IRoutingHandler } from "./irouting-handler";
 import { RouteResolutionContext } from "./route-resolution-context";
 import { QueryValues, RouteValues } from "./routing-invocation-context";
-import { DisposableHost, IDisposable } from "@aster-js/core";
 
 const SEGMENT_SEPARATOR = "/";
 

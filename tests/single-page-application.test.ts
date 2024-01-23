@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { SinglePageApplication } from "../src";
 import { resolveServiceId } from "@aster-js/ioc";
+import { IDisposable } from "@aster-js/core";
 
 describe("SinglePageApplication", () => {
 
@@ -28,6 +29,25 @@ describe("SinglePageApplication", () => {
         const service = app.services.get(id, true);
 
         assert.isTrue(service.initialized, "initialized called");
+    });
+
+    it.skip("Should load and unload app properly", async () => {
+        class Service implements IDisposable {
+            state: string = "none";
+            [Symbol.dispose]() {
+                this.state = "disposed";
+            }
+        }
+
+        const app = await SinglePageApplication.start("test", x =>
+            x.addPart("./:app?index", x =>
+                x.configure(x => x.addSingleton(Service))
+                    .setup(Service, x => x.state = "initialized")
+            )
+        );
+
+        const defaultChild = app.getChild("index");
+        assert.isDefined(defaultChild);
     });
 
 });
