@@ -93,16 +93,22 @@ describe("SinglePageApplication", () => {
             }
         }
 
-        const app = await SinglePageApplication.start("the fucking app", x =>
+        const app = await SinglePageApplication.start("LoadTest", x =>
             x.addPart("/:app?index", x =>
                 x.configure(x => x.addSingleton(Service))
                     .setup(Service, x => x.state = "initialized")
             )
         );
 
-        assert.isDefined(app.activeChild);
-        const svc = app.activeChild!.services.get(resolveServiceId(Service), true);
+        const firstApp = app.activeChild!;
+        assert.isDefined(firstApp);
+
+        const svc = firstApp.services.get(resolveServiceId(Service), true);
         assert.equal(svc.state, "initialized");
+
+        // IDisposable.safeDispose(firstApp);
+
+        // assert.isUndefined(app.activeChild);
     });
 
 });

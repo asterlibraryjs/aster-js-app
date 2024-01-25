@@ -79,7 +79,12 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         if (child instanceof DisposableHost) {
             child.registerForDispose(IDisposable.create(() => {
                 const current = this._children.get(child.name);
-                if (current === child) this._children.delete(child.name);
+                if (current === child) {
+                    this._children.delete(child.name);
+                }
+                if (this._current === child) {
+                    delete this._current;
+                }
             }));
         }
     }
