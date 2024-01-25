@@ -3,3 +3,4 @@ export * from "./application-part";
 export * from "./default-application-configure-handler";
 export * from "./setup-application-part-builder";
 export * from "./single-page-application";
+export * from "./iapplication-part-lifecycle";

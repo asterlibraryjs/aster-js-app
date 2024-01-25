@@ -1,9 +1,10 @@
 import { AbortToken, assertAllSettledResult, Delayed } from "@aster-js/async";
 import { Constructor, DisposableHost, IDisposable } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ServiceProvider, ServiceScope } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, IServiceDescriptor, IServiceFactory, IServiceProvider, ServiceCollection, ServiceIdentifier, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { Memoize } from "@aster-js/decorators";
-import { activated, deactivated, IApplicationPartLifecycle, setup } from "./iapplication-part-lifecycle";
+import { ApplicationPartLifecycleHook, ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
+import { ApplicationPartLifecycleWrapper } from "./application-part-lifecycle-wrapper";
 
 export abstract class ApplicationPart extends DisposableHost implements IApplicationPart {
     private readonly _module: IIoCModule;
@@ -32,9 +33,35 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     ) {
         super();
         this._module = builder
-            .configure(x => x.addInstance(IApplicationPart, this, { scope: ServiceScope.container }))
-            .setupMany(IApplicationPartLifecycle, x => x[setup](), true)
+            .configure(x => this.configureMandatoryAppPartServices(x))
+            .setupMany(IApplicationPartLifecycle, x => {
+                return ApplicationPartLifecycleHooks.invoke(x, ApplicationPartLifecycleHooks.setup);
+            }, true)
             .build();
+    }
+
+    private configureMandatoryAppPartServices(services: ServiceCollection): void {
+        services.addInstance(IApplicationPart, this, { scope: ServiceScope.container });
+
+        for (const desc of this.extractImplicitLifecycleImpl(services)) {
+            services.addTransient(ApplicationPartLifecycleWrapper, { baseArgs: [desc], scope: ServiceScope.container });
+        }
+    }
+
+    private extractImplicitLifecycleImpl(services: ServiceCollection): IServiceDescriptor[] {
+        const explicitLifeCycles = new Set();
+        const implicitLifeCycles = [];
+
+        for (const desc of services) {
+            if (desc.serviceId === IApplicationPartLifecycle) {
+                explicitLifeCycles.add(desc.targetType);
+            }
+            else if (ApplicationPartLifecycleHooks.hasAny(desc.ctor)) {
+                implicitLifeCycles.push(desc);
+            }
+        }
+
+        return implicitLifeCycles.filter(x => !explicitLifeCycles.has(x.targetType));
     }
 
     getChild(name: string): IApplicationPart | undefined {
@@ -52,7 +79,12 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         if (child instanceof DisposableHost) {
             child.registerForDispose(IDisposable.create(() => {
                 const current = this._children.get(child.name);
-                if (current === child) this._children.delete(child.name);
+                if (current === child) {
+                    this._children.delete(child.name);
+                }
+                if (this._current === child) {
+                    delete this._current;
+                }
             }));
         }
     }
@@ -73,22 +105,26 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         return <IApplicationPart>part;
     }
 
-    activate(name: string): Promise<void> {
+    async activate(name: string): Promise<void> {
         const part = this._children.get(name);
-        if (part) return this.activatePart(part);
-
-        throw new Error(`Cannot find any module named ${name}`);
+        if (part) {
+            await this.activatePart(part);
+            this._current = part;
+        }
+        else {
+            throw new Error(`Cannot find any module named ${name}`);
+        }
     }
 
     private async activatePart(part: IApplicationPart): Promise<void> {
-        if (this._current) await this.invokeLifecycle(this._current, deactivated);
-        await this.invokeLifecycle(part, activated);
+        if (this._current) await this.invokeLifecycleHook(this._current, ApplicationPartLifecycleHooks.deactivated);
+        await this.invokeLifecycleHook(part, ApplicationPartLifecycleHooks.activated);
     }
 
-    private async invokeLifecycle(part: IApplicationPart, method: typeof activated | typeof deactivated): Promise<void> {
+    private async invokeLifecycleHook(part: IApplicationPart, hook: ApplicationPartLifecycleHook): Promise<void> {
         const promises = [];
         for (const svc of part.services.getAll(IApplicationPartLifecycle, true)) {
-            const result = svc[method]();
+            const result = ApplicationPartLifecycleHooks.invoke(svc, hook);
             promises.push(result);
         }
         const allSettledResult = await Promise.allSettled(promises);

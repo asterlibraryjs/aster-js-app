@@ -3,7 +3,7 @@ import { RouteResolutionContext } from "./route-resolution-context";
 import { RouteValues } from "./routing-invocation-context";
 import { ASSIGN_CHAR, NULLABLE_CHAR, SEGMENT_SEPARATOR, WILDCARD_CHAR, RELATIVE_CHAR } from "./routing-constants";
 
-
+/** */
 export class Route implements Iterable<IRouteSegment>{
     private readonly _segments: readonly IRouteSegment[];
     private readonly _wildcard?: true;

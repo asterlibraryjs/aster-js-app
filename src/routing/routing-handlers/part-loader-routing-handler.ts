@@ -9,13 +9,15 @@ import { Constructor } from "@aster-js/core";
 export class PartLoaderRoutingHandler implements IRoutingHandler {
     private readonly _route: Route;
 
+    get path(): string { return this._path; }
+
     get route(): Route { return this._route; }
 
     constructor(
-        path: string,
+        private readonly _path: string,
         private readonly _configHandler: Constructor<IAppConfigureHandler>
     ) {
-        this._route = Route.parse(path);
+        this._route = Route.parse(_path);
     }
 
     async handle(data: RouteData, app: IApplicationPart): Promise<void> {

@@ -1,22 +1,33 @@
 import { IDisposable } from "@aster-js/core";
 import { dom } from "@aster-js/dom";
 import { ServiceContract } from "@aster-js/ioc";
-import { INavigationHandler } from "../inavigation-handler";
-
+import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 import { IRouter } from "../irouter";
 
-@ServiceContract(INavigationHandler)
-export class HyperlinkNavigationHandler implements INavigationHandler, IDisposable {
+@ServiceContract(IApplicationPartLifecycle)
+export class HyperlinkNavigationHandler implements IDisposable {
     private _registration?: IDisposable;
 
     constructor(
         @IRouter private readonly _router: IRouter
     ) { }
 
-    start(): void {
-        if (this._registration) return;
+    [ApplicationPartLifecycleHooks.setup](): Promise<void> {
+        return Promise.resolve();
+    }
 
-        this._registration = dom.on(document.body, "click", ev => this.onRootClick(<UIEvent>ev));
+    [ApplicationPartLifecycleHooks.activated](): Promise<void> {
+        if (!this._registration) {
+            this._registration = dom.on(document.body, "click", ev => this.onRootClick(<UIEvent>ev));
+        }
+        return Promise.resolve();
+    }
+
+    [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {
+        IDisposable.safeDispose(this._registration);
+        delete this._registration;
+
+        return Promise.resolve();
     }
 
     private onRootClick(ev: UIEvent): void {
@@ -31,9 +42,12 @@ export class HyperlinkNavigationHandler implements INavigationHandler, IDisposab
 
         if (location.href === url.href) return;
 
-        const result = this._router.eval(url.pathname);
-        if (result) {
-            history.pushState({}, anchor.innerText, url);
+        this.navigate(url, anchor.innerText);
+    }
+
+    private async navigate(url: URL, title: string): Promise<void> {
+        if (await this._router.eval(url.pathname)) {
+            history.pushState({}, title, url);
         }
         else {
             location.assign(url);
@@ -46,12 +60,7 @@ export class HyperlinkNavigationHandler implements INavigationHandler, IDisposab
         }
     }
 
-    stop(): void {
-        IDisposable.safeDispose(this._registration);
-        this._registration;
-    }
-
     [Symbol.dispose](): void {
-        this.stop();
+        IDisposable.safeDispose(this._registration);
     }
 }

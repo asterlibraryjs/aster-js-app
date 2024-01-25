@@ -132,6 +132,13 @@ describe("Route", () => {
         assert.isTrue(route2.match(ctx));
     });
 
+    it("Should match a single value with a default", () => {
+        const route = Route.parse("/:app?index");
+        const ctx = new RouteResolutionContext(["context.html"]);
+
+        assert.isTrue(route.match(ctx));
+    });
+
     it("Should read a wildcarded route", () => {
         const route = Route.parse("/items/:item/field/*");
 

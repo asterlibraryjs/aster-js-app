@@ -1,31 +1,39 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { INavigationHandler } from "../inavigation-handler";
+import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 
 import { IRouter } from "../irouter";
 import { IDisposable } from "@aster-js/core";
 import { dom } from "@aster-js/dom";
 
-@ServiceContract(INavigationHandler)
-export class HistoryNavigationHandler implements INavigationHandler, IDisposable {
+@ServiceContract(IApplicationPartLifecycle)
+export class HistoryNavigationHandler implements IDisposable {
     private _popstateHandle?: IDisposable;
 
     constructor(
         @IRouter private readonly _router: IRouter
     ) { }
 
-    start(): void {
-        this._popstateHandle = dom.on(window, "popstate", this.onNavigate);
+    [ApplicationPartLifecycleHooks.setup](): Promise<void> {
+        return Promise.resolve();
+    }
+
+    [ApplicationPartLifecycleHooks.activated](): Promise<void> {
+        if (!this._popstateHandle) {
+            this._popstateHandle = dom.on(window, "popstate", this.onNavigate);
+        }
+        return Promise.resolve();
+    }
+
+    [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {
+        IDisposable.safeDispose(this._popstateHandle);
+        return Promise.resolve();
     }
 
     private onNavigate(ev: PopStateEvent): void {
         this._router.eval(location.href, ev.state);
     }
 
-    stop(): void {
-        IDisposable.safeDispose(this._popstateHandle)
-    }
-
     [Symbol.dispose](): void {
-        this.stop();
+        IDisposable.safeDispose(this._popstateHandle);
     }
 }
