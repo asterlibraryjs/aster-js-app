@@ -26,4 +26,8 @@ export class RouteResolutionContext implements Iterable<string>{
     *[Symbol.iterator](): IterableIterator<string> {
         yield* this._segments;
     }
+
+    toString(): string {
+        return this._segments.join("/");
+    }
 }

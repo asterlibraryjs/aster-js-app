@@ -10,6 +10,8 @@ export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>("IRoutingHandl
  * A routing handler is in charge handling matching navigation
  */
 export interface IRoutingHandler {
+    /** Gets the string path used to describe the route */
+    readonly path: string;
     /** Route to match with. This route will also extract data from the url */
     readonly route: Route;
     /**

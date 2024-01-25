@@ -32,7 +32,8 @@
     "@aster-js/decorators": "^1.1.0",
     "@aster-js/dom": "1.1.0",
     "@aster-js/events": "^1.3.0",
-    "@aster-js/ioc": "^1.4.4",
+    "@aster-js/ioc": "^1.5.1",
+    "@aster-js/iterators": "^1.1.0",
     "tslib": "^2.6.2"
   },
   "devDependencies": {

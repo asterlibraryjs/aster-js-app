@@ -1,4 +1,5 @@
 import { ILogger, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
+import { Query } from "@aster-js/iterators/lib/query"
 import { IApplicationPart } from "../abstraction/iapplication-part";
 import { IRouter } from "./irouter";
 import { IRoutingHandler } from "./irouting-handler";
@@ -16,12 +17,26 @@ export class DefaultRouter implements IRouter {
     ) {
     }
 
-    eval(url: string, defaults: RouteValues = {}): Promise<void> | false {
+    *getHandlers(): Iterable<IRoutingHandler> {
+        yield* this._handlers;
+    }
+
+
+    async *getChildren(nested: boolean): AsyncIterable<IRouter> {
+        for await (const childApp of this._application) {
+            const router = childApp.services.get(IRouter);
+            if (router) {
+                yield router;
+                yield* router.getChildren(true);
+            }
+        }
+    }
+    eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
         const parsedUrl = new URL(url, location.origin);
 
         let path = parsedUrl.pathname;
         if (path.startsWith(SEGMENT_SEPARATOR)) path = path.substring(1);
-        if (path.endsWith(SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 2);
+        if (path.endsWith(SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
 
         const segments = path.split(SEGMENT_SEPARATOR);
         const ctx = new RouteResolutionContext(segments);
@@ -32,34 +47,44 @@ export class DefaultRouter implements IRouter {
         return this.handle(ctx, defaults, query);
     }
 
-    handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> | false {
-        const handler = this._handlers.find(x => x.route.match(ctx));
-        if (!handler) return false;
-        return this.invokeHandler(handler, ctx, values, query);
+    async handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<boolean> {
+        const children = this.getChildren(true);
+
+        const handler = await Query(children)
+            .prepend(this)
+            .flatMap(x => x.getHandlers())
+            .filter(x => !x.route.relative)
+            .findFirst(x => x.route.match(ctx));
+
+        if (!handler) {
+            const handlerPaths = this._handlers.map(x => x.path);
+            this._logger.warn(null, `No match found for the remaining route path: {relativeUrl}`, ctx.toString(), ...handlerPaths);
+            return false;
+        }
+
+        await this.invokeHandler(handler, ctx, values, query);
+        return true;
     }
 
     private async invokeHandler(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> {
+        const relativeUrl = ctx.toString();
         const localValues = handler.route.getRouteValues(ctx);
         const mergedValues = Object.assign({}, values, localValues);
 
+        const routeData = { values: mergedValues, query };
+
+        this._logger.info(`Routing match url "{relativeUrl}" with route "{routePath}"`, relativeUrl, handler.path, routeData);
         try {
-            await handler.handle({ query, values: mergedValues }, this._application);
+            await handler.handle(routeData, this._application);
         }
         catch (err) {
-            this._logger.log(LogLevel.error, "Error handled during route handler invocation", err)
+            this._logger.log(LogLevel.error, err, "Error handled during route handler invocation")
         }
 
         if (ctx.remaining === 0) return;
 
-        for await (const childApp of this._application) {
-            const router = childApp.services.get(IRouter);
-            if (!router) continue;
-
-            const evalResult = router.handle(ctx, values, query);
-            if (evalResult === false) continue;
-
-            await evalResult;
-            break;
+        for await (const router of this.getChildren(false)) {
+            if (await router.handle(ctx, values, query)) break;
         }
     }
 }

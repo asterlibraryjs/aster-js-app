@@ -2,7 +2,7 @@ import { Constructor } from "@aster-js/core";
 import { IIoCContainerBuilder, IIoCModule, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ISetupIoCContainerBuilder, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
 import { IApplicationPartBuilder, IApplicationPart, IAppConfigureHandler, AppConfigureDelegate, CallbackConfigureHandler, configure } from "../abstraction";
 import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
-import { INavigationHandler, ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction } from "../routing";
+import { ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction } from "../routing";
 import { Delayed } from "@aster-js/async";
 import { PartLoaderRoutingHandler } from "../routing/routing-handlers/part-loader-routing-handler";
 
@@ -15,11 +15,6 @@ export abstract class ApplicationPartBuilder implements IApplicationPartBuilder 
         private readonly _result: Delayed<IApplicationPart>
     ) {
         this._innerBuilder = _source.createChildScope(partName);
-        this.initDefaults();
-    }
-
-    protected initDefaults(): void {
-        this.setupMany(INavigationHandler, x => x.start());
     }
 
     addPart(path: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): IApplicationPartBuilder {

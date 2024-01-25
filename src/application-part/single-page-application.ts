@@ -34,8 +34,7 @@ export class SinglePageApplication extends ApplicationPart {
     private static createKernel() {
         const builder = IoCKernel.create();
         builder.configure(x => {
-            x.addConsoleLogger(LogLevel.trace)
-                .addSystemClock();
+            x.addConsoleLogger(LogLevel.trace);
         });
         return builder.build();
     }

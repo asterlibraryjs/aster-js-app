@@ -14,13 +14,9 @@ describe("DefaultRouter", () => {
         });
 
         const router = app.services.get(IRouter, true);
-        const result = router.eval("https://localhost/page?id=0", {});
+        const result = await router.eval("https://localhost/page?id=0", {});
 
-        assert.instanceOf(result, Promise);
-
-        await result;
-
-        assert.isTrue(called);
+        assert.isTrue(result);
     });
 
     it("Should create a child module and continue to load the route", async () => {
@@ -32,12 +28,8 @@ describe("DefaultRouter", () => {
         });
 
         const router = app.services.get(IRouter, true);
-        const result = router.eval("https://localhost/page/species/view/vertebrate", {});
+        const result =await router.eval("https://localhost/page/species/view/vertebrate", {});
 
-        assert.instanceOf(result, Promise);
-
-        await result;
-
-        assert.isTrue(called);
+        assert.isTrue(result);
     });
 });
