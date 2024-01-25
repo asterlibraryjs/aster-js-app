@@ -26,7 +26,7 @@
   "homepage": "https://github.com/asterlibraryjs/aster-js-app#readme",
   "license": "ISC",
   "dependencies": {
-    "@aster-js/async": "^1.5.0",
+    "@aster-js/async": "^1.4.1",
     "@aster-js/collections": "^1.0.3",
     "@aster-js/core": "^1.3.0",
     "@aster-js/decorators": "^1.1.0",
