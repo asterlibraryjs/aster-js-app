@@ -106,9 +106,8 @@ describe("SinglePageApplication", () => {
         const svc = firstApp.services.get(resolveServiceId(Service), true);
         assert.equal(svc.state, "initialized");
 
-        // IDisposable.safeDispose(firstApp);
-
-        // assert.isUndefined(app.activeChild);
+        //IDisposable.safeDispose(firstApp);
+        //assert.isUndefined(app.activeChild);
     });
 
 });
