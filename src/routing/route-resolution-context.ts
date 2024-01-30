@@ -1,3 +1,5 @@
+import { IRouter } from "./irouter";
+
 export class RouteResolutionContext implements Iterable<string>{
     private readonly _segments: string[];
     private readonly _initialSize: number;
@@ -6,7 +8,10 @@ export class RouteResolutionContext implements Iterable<string>{
 
     get initialSize(): number { return this._initialSize; }
 
-    constructor(segments: Iterable<string>) {
+    constructor(
+        readonly initiator: IRouter | null,
+        segments: Iterable<string>
+    ) {
         this._segments = [...segments];
         this._initialSize = this._segments.length;
     }

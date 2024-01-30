@@ -1,5 +1,5 @@
 import { ILogger, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
-import { Query } from "@aster-js/iterators/lib/query"
+import { AsyncQuery, Query } from "@aster-js/iterators/lib/query"
 import { IApplicationPart } from "../abstraction/iapplication-part";
 import { IRouter } from "./irouter";
 import { IRoutingHandler } from "./irouting-handler";
@@ -27,7 +27,7 @@ export class DefaultRouter implements IRouter {
             const router = childApp.services.get(IRouter);
             if (router) {
                 yield router;
-                yield* router.getChildren(true);
+                if (nested) yield* router.getChildren(true);
             }
         }
     }
@@ -39,7 +39,7 @@ export class DefaultRouter implements IRouter {
         if (path.endsWith(SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
 
         const segments = path.split(SEGMENT_SEPARATOR);
-        const ctx = new RouteResolutionContext(segments);
+        const ctx = new RouteResolutionContext(this, segments);
 
         const search = new URLSearchParams(parsedUrl.search);
         const query = Object.fromEntries(search);
@@ -48,13 +48,7 @@ export class DefaultRouter implements IRouter {
     }
 
     async handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<boolean> {
-        const children = this.getChildren(true);
-
-        const handler = await Query(children)
-            .prepend(this)
-            .flatMap(x => x.getHandlers())
-            .filter(x => !x.route.relative)
-            .findFirst(x => x.route.match(ctx));
+        const handler = await this.resolveHandler(ctx);
 
         if (!handler) {
             const handlerPaths = this._handlers.map(x => x.path);
@@ -64,6 +58,19 @@ export class DefaultRouter implements IRouter {
 
         await this.invokeHandler(handler, ctx, values, query);
         return true;
+    }
+
+    private async resolveHandler(ctx: RouteResolutionContext): Promise<IRoutingHandler | undefined> {
+        if (ctx.initiator === this) {
+            const children = this.getChildren(true);
+            return Query(children)
+                .prepend(this)
+                .flatMap(x => x.getHandlers())
+                .filter(x => !x.route.relative)
+                .findFirst(x => x.route.match(ctx));
+        }
+        return Query(this.getHandlers())
+            .findFirst(x => x.route.match(ctx));
     }
 
     private async invokeHandler(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> {

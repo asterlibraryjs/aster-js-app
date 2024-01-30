@@ -144,6 +144,8 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     protected abstract createAppBuilder(name: string): IApplicationPartBuilder;
 
     [Symbol.dispose](): void {
+        delete this._current;
+        IDisposable.safeDispose(this._children.values());
         IDisposable.safeDispose(this._module);
     }
 
