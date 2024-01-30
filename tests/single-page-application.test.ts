@@ -91,6 +91,15 @@ describe("SinglePageApplication", () => {
             [Symbol.dispose]() {
                 this.state = "disposed";
             }
+
+            [ApplicationPartLifecycleHooks.setup]() {
+                this.state = "setup";
+            }
+
+            [ApplicationPartLifecycleHooks.activated]() {
+                assert.equal(this.state,  "setup");
+                this.state = "activated";
+            }
         }
 
         const app = await SinglePageApplication.start("LoadTest", x =>
@@ -104,7 +113,7 @@ describe("SinglePageApplication", () => {
         assert.isDefined(firstApp);
 
         const svc = firstApp.services.get(resolveServiceId(Service), true);
-        assert.equal(svc.state, "initialized");
+        assert.equal(svc.state, "activated");
 
         //IDisposable.safeDispose(firstApp);
         //assert.isUndefined(app.activeChild);

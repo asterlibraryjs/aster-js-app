@@ -40,7 +40,11 @@ export class SinglePageApplication extends ApplicationPart {
     }
 
     async start(): Promise<boolean> {
-        return await this._parent.start() && await super.start();
+        if(await this._parent.start()&& await super.start()){
+            await this.activatePart(this);
+            return true;
+        }
+        return false;
     }
 
     static create(appName: string, ...handlerCtors: Constructor<IAppConfigureHandler>[]): IApplicationPartBuilder {
@@ -60,7 +64,6 @@ export class SinglePageApplication extends ApplicationPart {
         const app = SinglePageApplication.create(appName, DefaultApplicationConfigureHandler, handler).build();
         await app.start();
         asserts.instanceOf(app, SinglePageApplication);
-        await app.activatePart(app);
         return app;
     }
 }
