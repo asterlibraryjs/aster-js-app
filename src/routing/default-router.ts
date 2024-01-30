@@ -88,8 +88,6 @@ export class DefaultRouter implements IRouter {
             this._logger.log(LogLevel.error, err, "Error handled during route handler invocation")
         }
 
-        if (ctx.remaining === 0) return;
-
         for await (const router of this.getChildren(false)) {
             if (await router.handle(ctx, values, query)) break;
         }

@@ -116,7 +116,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         }
     }
 
-    private async activatePart(part: IApplicationPart): Promise<void> {
+    protected async activatePart(part: IApplicationPart): Promise<void> {
         if (this._current) await this.invokeLifecycleHook(this._current, ApplicationPartLifecycleHooks.deactivated);
         await this.invokeLifecycleHook(part, ApplicationPartLifecycleHooks.activated);
     }
