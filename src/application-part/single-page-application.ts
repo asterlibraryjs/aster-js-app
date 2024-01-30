@@ -60,6 +60,7 @@ export class SinglePageApplication extends ApplicationPart {
         const app = SinglePageApplication.create(appName, DefaultApplicationConfigureHandler, handler).build();
         await app.start();
         asserts.instanceOf(app, SinglePageApplication);
+        await app.activatePart(app);
         return app;
     }
 }
