@@ -16,7 +16,7 @@ export interface IRouter {
      * Gets all child router extracted from application part children
      * @param nested Indicate whether or not it should return nested children or only direct children
      */
-    getChildren(nested: boolean): AsyncIterable<IRouter>;
+    getActiveChildren(nested: boolean): AsyncIterable<IRouter>;
     /**
      * Evaluate provided path in current application
      * @param path Path to evaluate

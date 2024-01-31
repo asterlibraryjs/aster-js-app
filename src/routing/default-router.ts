@@ -24,12 +24,13 @@ export class DefaultRouter implements IRouter {
         yield* this._handlers;
     }
 
-    async *getChildren(nested: boolean): AsyncIterable<IRouter> {
-        for await (const childApp of this._application) {
-            const router = childApp.services.get(IRouter);
+    async *getActiveChildren(nested: boolean): AsyncIterable<IRouter> {
+        const active = this._application.activeChild;
+        if (active) {
+            let router = active.services.get(IRouter);
             if (router) {
                 yield router;
-                if (nested) yield* router.getChildren(true);
+                if (nested) yield* router.getActiveChildren(true);
             }
         }
     }
@@ -65,7 +66,7 @@ export class DefaultRouter implements IRouter {
 
     private async resolveHandler(ctx: RouteResolutionContext): Promise<IRoutingHandler | undefined> {
         if (ctx.initiator === this) {
-            const children = this.getChildren(true);
+            const children = this.getActiveChildren(true);
             return Query(children)
                 .prepend(this)
                 .flatMap(x => x.getHandlers())
@@ -92,8 +93,8 @@ export class DefaultRouter implements IRouter {
             this._logger.log(LogLevel.error, err, "Error handled during route handler invocation")
         }
 
-        for await (const router of this.getChildren(false)) {
-            if (await router.handle(ctx, values, query)) break;
+        for await (const router of this.getActiveChildren(false)) {
+            if (await router.handle(ctx, mergedValues, query)) break;
         }
     }
 }
