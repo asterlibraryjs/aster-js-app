@@ -9,7 +9,7 @@ export function assertStaticSegment(segment: IRouteSegment, expected: string): a
     assert.equal(expected, staticRoute.segment);
 }
 
-export function assertStringSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue?: string): asserts segment is StringRouteSegment {
+export function assertStringSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue: string | null = null): asserts segment is StringRouteSegment {
     assert.instanceOf(segment, StringRouteSegment);
 
     const staticRoute = <StringRouteSegment>segment;
@@ -27,7 +27,7 @@ export function assertEnumSegment(segment: IRouteSegment, expectedName: string, 
     assert.equal(expectedDefaultValue, staticRoute.defaultValue);
 }
 
-export function assertNumberSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue?: string): asserts segment is NumberRouteSegment {
+export function assertNumberSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue: string | null): asserts segment is NumberRouteSegment {
     assert.instanceOf(segment, NumberRouteSegment);
 
     const staticRoute = <NumberRouteSegment>segment;

@@ -68,7 +68,7 @@ describe("Route", () => {
         assert.equal(1, segments.length);
 
         const segment = segments[0];
-        assertStringSegment(segment, "bob", true, "");
+        assertStringSegment(segment, "bob", true, null);
 
         assert.isTrue(segment.match("hello"));
         assert.isTrue(segment.match(undefined));
@@ -111,7 +111,7 @@ describe("Route", () => {
         assertStringSegment(segments[1], "item", false);
         assertStaticSegment(segments[2], "field");
         assertStringSegment(segments[3], "field", true, "description");
-        assertNumberSegment(segments[4], "id", true, "");
+        assertNumberSegment(segments[4], "id", true, null);
     });
 
     it("Should get all route values", () => {

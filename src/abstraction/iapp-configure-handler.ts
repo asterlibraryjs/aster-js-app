@@ -13,11 +13,19 @@ export type AppConfigureDelegate = (builder: IApplicationPartBuilder, host?: IAp
 export namespace IAppConfigureHandler {
     export function create(callback: AppConfigureDelegate): Constructor<IAppConfigureHandler> {
         class CallbackAppConfigureHandler extends CallbackConfigureHandler {
-            constructor(){
+            constructor() {
                 super(callback);
             }
         }
         return CallbackAppConfigureHandler;
+    }
+
+    export function resolve(configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Constructor<IAppConfigureHandler> {
+        const proto = configHandler.prototype;
+        if (proto && configure in proto) {
+            return <Constructor<IAppConfigureHandler>>configHandler;
+        }
+        return IAppConfigureHandler.create(<AppConfigureDelegate>configHandler);
     }
 }
 
