@@ -5,7 +5,7 @@ import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
 import { ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction, IRoutingHandler } from "../routing";
 import { Delayed } from "@aster-js/async";
 import { PartLoaderRoutingHandler } from "../routing/routing-handlers/part-loader-routing-handler";
-import { ControllerRouteTag } from "../controller/irouting-result";
+import { ControllerRoutingHandlerTag } from "../controller/controller-routing-handler-tag";
 
 export abstract class ApplicationPartBuilder implements IApplicationPartBuilder {
     private readonly _innerBuilder: IIoCContainerBuilder;
@@ -30,7 +30,7 @@ export abstract class ApplicationPartBuilder implements IApplicationPartBuilder 
     }
 
     addController<T>(ctor: Constructor<T>): IApplicationPartBuilder {
-        const handlers = ControllerRouteTag.get(ctor.prototype);
+        const handlers = ControllerRoutingHandlerTag.get(ctor.prototype);
         this.configure(x => {
             const serviceId = resolveServiceId(ctor);
             x.addScoped(serviceId, ctor, { scope: ServiceScope.container });
