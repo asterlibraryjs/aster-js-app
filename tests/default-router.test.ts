@@ -39,7 +39,7 @@ describe("DefaultRouter", () => {
     it("Should create a child module and continue to load the route", async () => {
         let called = false;
         const app = await SinglePageApplication.start("test", x => {
-            x.addPart("/page/:app/*", x => {
+            x.addPart("/page/:part/*", x => {
                 x.addAction("~/view/:view", _ => { called = true; });
             });
         });
@@ -49,6 +49,23 @@ describe("DefaultRouter", () => {
 
         assert.isTrue(result, "started");
         assert.isTrue(called, "called");
+    });
+
+    it("Should load 2 nested application parts", async () => {
+        let idCaptured = 0;
+        const app = await SinglePageApplication.start("test", x => {
+            x.addPart("/page/:part/*", x => {
+                x.addPart("/view/:part/*", x => {
+                    x.addAction("~/:+id", ({ data }) => { idCaptured = <number>data.values["id"]; });
+                });
+            });
+        });
+
+        const router = app.services.get(IRouter, true);
+        const result = await router.eval("https://localhost/page/species/view/vertebrate/69", {});
+
+        assert.isTrue(result, "started");
+        assert.equal(idCaptured, 69);
     });
 
     it("Should create a child using configure handler and route data service", async () => {
@@ -64,7 +81,7 @@ describe("DefaultRouter", () => {
             }
         }
 
-        const app = await SinglePageApplication.start("test", x => x.addPart("/page/:app/view/:view", ViewConfigurationHandler));
+        const app = await SinglePageApplication.start("test", x => x.addPart("/page/:part/view/:view", ViewConfigurationHandler));
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
 

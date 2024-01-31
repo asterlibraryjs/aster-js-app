@@ -21,8 +21,8 @@ export class PartLoaderRoutingHandler implements IRoutingHandler {
     }
 
     async handle(data: RouteData, app: IApplicationPart): Promise<void> {
-        const appName = data.values["app"];
-        if (typeof appName !== "string") throw new Error(`Missing route value named 'app'`);
+        const appName = data.values["part"];
+        if (typeof appName !== "string") throw new Error(`Missing route value named 'part'`);
         await app.load(appName, this._configHandler);
     }
 }

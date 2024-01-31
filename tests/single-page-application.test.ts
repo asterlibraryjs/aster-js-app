@@ -3,7 +3,6 @@ import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks, SinglePageApp
 import { IClock, IIoCModule, ILogger, resolveServiceId } from "@aster-js/ioc";
 import { IDisposable } from "@aster-js/core";
 import { spy, assert as sassert } from "sinon";
-import { Query } from "@aster-js/iterators/lib/query"
 
 describe("SinglePageApplication", () => {
 
@@ -103,7 +102,7 @@ describe("SinglePageApplication", () => {
         }
 
         const app = await SinglePageApplication.start("LoadTest", x =>
-            x.addPart("/:app?index", x =>
+            x.addPart("/:part?index", x =>
                 x.configure(x => x.addSingleton(Service))
                     .setup(Service, x => x.state = "initialized")
             )

@@ -1,9 +1,9 @@
 import { assert } from "chai";
-import { html, IAppConfigureHandler, IApplicationPart, IRouter, IRoutingResult, Param, ParamValues, Query, QueryValues, RouteData, RoutePath, RouteValue, RouteValues, SinglePageApplication } from "../src";
+import { htmlResult, IAppConfigureHandler, IApplicationPart, IRouter, IRoutingResult, Param, ParamValues, Query, QueryValues, RouteData, RoutePath, RouteValue, RouteValues, SinglePageApplication } from "../src";
 
 describe("Controller", () => {
 
-    it("Should ", async () => {
+    it("Should use a controller to handle a route", async () => {
         const root = document.createElement("div");
         root.innerHTML = "<b>Loading...</b>"
 
@@ -42,7 +42,7 @@ describe("Controller", () => {
                 assert.deepEqual(allQuery, { id: "99", filter: ["a", "b"] });
                 assert.deepEqual(allParams, { id: "99", customerId: 555, filter: ["a", "b"], text: "hello world" });
 
-                return html(`<i>${text} ${routeValueId} !!</i>`, root);
+                return htmlResult(`<i>${text} ${routeValueId} !!</i>`, root);
             }
         }
 
@@ -53,6 +53,38 @@ describe("Controller", () => {
         await app.services.get(IRouter, true).eval("./customer/555/detail/33/hello%20world?id=99&filter=a&filter=b");
 
         assert.equal(root.innerHTML, "<div><i>hello world 33 !!</i></div>");
+    });
+
+    it("Should use a controller nested in an application part to handle a route", async () => {
+        const root = document.createElement("div");
+        root.innerHTML = "<b>Loading...</b>"
+
+        class CustomerViewController {
+
+            constructor(@IApplicationPart private readonly _part: IApplicationPart) { }
+
+            @RoutePath("~/")
+            async index(): Promise<IRoutingResult> {
+                return this.showDetail(0);
+            }
+
+            @RoutePath("~/detail/:+id")
+            async showDetail(@RouteValue("id") id: number): Promise<IRoutingResult> {
+                return htmlResult(`<i>Selected ID: ${id}</i>`, root);
+            }
+        }
+
+        const app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
+            builder.addPart("/:part<customer>/*", x => {
+                x.addController(CustomerViewController);
+            });
+        }));
+
+        await app.services.get(IRouter, true).eval("./customer/");
+        assert.equal(root.innerHTML, "<div><i>Selected ID: 0</i></div>");
+
+        await app.services.get(IRouter, true).eval("./customer/detail/55");
+        assert.equal(root.innerHTML, "<div><i>Selected ID: 55</i></div>");
     });
 
 });

@@ -133,7 +133,7 @@ describe("Route", () => {
     });
 
     it("Should match a single value with a default", () => {
-        const route = Route.parse("/:app?index");
+        const route = Route.parse("/:part?index");
         const ctx = new RouteResolutionContext(null, ["context.html"]);
 
         assert.isTrue(route.match(ctx));
