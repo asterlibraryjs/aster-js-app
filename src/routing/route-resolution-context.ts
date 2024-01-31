@@ -12,7 +12,7 @@ export class RouteResolutionContext implements Iterable<string>{
         readonly initiator: IRouter | null,
         segments: Iterable<string>
     ) {
-        this._segments = [...segments];
+        this._segments = [...segments].map(decodeURIComponent);
         this._initialSize = this._segments.length;
     }
 

@@ -29,6 +29,10 @@ export class SetupIoCContainerBuilder implements IApplicationPartBuilder {
         return this._appBuilder.addPart(path, configHandler);
     }
 
+    addController(ctor: Constructor): IApplicationPartBuilder {
+        return this._appBuilder.addController(ctor);
+    }
+
     addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IApplicationPartBuilder;
     addAction(path: string, action: RouterAction): IApplicationPartBuilder;
     addAction(path: string, actionOrServiceId: RouterAction | ServiceIdentifier, action?: ServiceRouterAction): IApplicationPartBuilder {

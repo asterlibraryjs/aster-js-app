@@ -28,4 +28,6 @@ export interface IApplicationPartBuilder extends IIoCContainerBuilder {
      * @param configHandler Configure handler type of callback
      */
     addPart(path: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): IApplicationPartBuilder;
+
+    addController(ctor: Constructor): IApplicationPartBuilder;
 }

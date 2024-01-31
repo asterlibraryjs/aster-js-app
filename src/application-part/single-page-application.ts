@@ -59,8 +59,8 @@ export class SinglePageApplication extends ApplicationPart {
         return builder;
     }
 
-    static async start(appName: string, configure: AppConfigureDelegate): Promise<SinglePageApplication> {
-        const handler = IAppConfigureHandler.create(configure);
+    static async start(appName: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Promise<SinglePageApplication> {
+        const handler = IAppConfigureHandler.resolve(configHandler);
         const app = SinglePageApplication.create(appName, DefaultApplicationConfigureHandler, handler).build();
         await app.start();
         asserts.instanceOf(app, SinglePageApplication);
