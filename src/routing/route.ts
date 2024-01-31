@@ -101,7 +101,7 @@ export class Route implements Iterable<IRouteSegment>{
         }
         const idx = name.indexOf("<");
         if (idx !== -1 && name.endsWith(">")) {
-            const values = name.substring(idx + 1, name.length - 2).split("|");
+            const values = name.substring(idx + 1, name.length - 1).split("|");
             name = name.substring(0, idx);
             return new EnumRouteSegment(name, values, optional, defaultValue);
         }

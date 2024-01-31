@@ -1,11 +1,11 @@
 import { Constructor } from "@aster-js/core";
+import { Delayed } from "@aster-js/async";
 import { IIoCContainerBuilder, IIoCModule, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ISetupIoCContainerBuilder, resolveServiceId, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
 import { IApplicationPartBuilder, IApplicationPart, IAppConfigureHandler, AppConfigureDelegate } from "../abstraction";
-import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
 import { ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction, IRoutingHandler } from "../routing";
-import { Delayed } from "@aster-js/async";
 import { PartLoaderRoutingHandler } from "../routing/routing-handlers/part-loader-routing-handler";
 import { ControllerRoutingHandlerTag } from "../controller/controller-routing-handler-tag";
+import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
 
 export abstract class ApplicationPartBuilder implements IApplicationPartBuilder {
     private readonly _innerBuilder: IIoCContainerBuilder;

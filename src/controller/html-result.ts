@@ -14,15 +14,15 @@ export enum HtmlInsertionMode {
  * @param target Node target
  * @param mode Append mode
  */
-export function html(html: string | HTMLElement, target: HTMLElement, mode?: HtmlInsertionMode): IRoutingResult;
+export function htmlResult(html: string | HTMLElement, target: HTMLElement, mode?: HtmlInsertionMode): IRoutingResult;
 /**
  * Returns a routing result used by controllers to do basic alter of the dom
  * @param html Html template
  * @param targetSelector Query selector to call on document
  * @param mode Append mode
  */
-export function html(html: string | HTMLElement, targetSelector: string, mode?: HtmlInsertionMode): IRoutingResult
-export function html(html: HTMLElement | string, target: HTMLElement | string, mode?: HtmlInsertionMode): IRoutingResult {
+export function htmlResult(html: string | HTMLElement, targetSelector: string, mode?: HtmlInsertionMode): IRoutingResult
+export function htmlResult(html: HTMLElement | string, target: HTMLElement | string, mode?: HtmlInsertionMode): IRoutingResult {
     const htmlElement = resolveHtml(html);
     const targetElement = resolveTarget(target);
     return new HtmlResult(targetElement, htmlElement, mode ?? HtmlInsertionMode.replace);
