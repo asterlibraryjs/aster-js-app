@@ -44,9 +44,7 @@ export class DefaultRouter implements IRouter {
 
         const segments = path ? path.split(SEGMENT_SEPARATOR) : [];
         const ctx = new RouteResolutionContext(this, segments);
-
-        const search = new URLSearchParams(parsedUrl.search);
-        const query = Object.fromEntries(search);
+        const query = QueryValues.parse(parsedUrl.search);
 
         return this.handle(ctx, defaults, query);
     }
