@@ -92,7 +92,11 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     start(): Promise<boolean> { return this._module.start(); }
 
     async load(name: string, handlerCtor: Constructor<IAppConfigureHandler>): Promise<IApplicationPart> {
-        this.throwIfExists(name);
+        const current = this._children.get(name);
+        if (current) {
+            await this.activate(name);
+            return current;
+        }
 
         const builder = this.createAppBuilder(name);
 

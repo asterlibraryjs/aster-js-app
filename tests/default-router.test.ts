@@ -59,7 +59,6 @@ describe("DefaultRouter", () => {
             constructor(@IContainerRouteData private readonly _routeData: IContainerRouteData) { }
 
             [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
-                called = true
                 assert.equal(this._routeData.values["view"], "vertebrate");
                 builder.addAction("~/", () => { called = true; })
             }

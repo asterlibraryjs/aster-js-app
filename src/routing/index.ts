@@ -7,3 +7,4 @@ export * from "./irouting-handler";
 export * from "./route-resolution-context";
 export * from "./route";
 export * from "./routing-invocation-context";
+export * from "./icontainer-route-data";
