@@ -1,6 +1,6 @@
 import { Constructor } from "@aster-js/core";
 import { IIoCContainerBuilder, IIoCModule, IoCModuleConfigureDelegate, IoCModuleSetupDelegate, ISetupIoCContainerBuilder, ServiceIdentifier, ServiceScope, ServiceSetupDelegate } from "@aster-js/ioc";
-import { IApplicationPartBuilder, IApplicationPart, IAppConfigureHandler, AppConfigureDelegate, CallbackConfigureHandler, configure } from "../abstraction";
+import { IApplicationPartBuilder, IApplicationPart, IAppConfigureHandler, AppConfigureDelegate } from "../abstraction";
 import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
 import { ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction } from "../routing";
 import { Delayed } from "@aster-js/async";
@@ -18,7 +18,7 @@ export abstract class ApplicationPartBuilder implements IApplicationPartBuilder 
     }
 
     addPart(path: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): IApplicationPartBuilder {
-        const ctor = this.resolveConfigHandler(configHandler);
+        const ctor = IAppConfigureHandler.resolve(configHandler);
         this.configure(x =>
             x.addScoped(PartLoaderRoutingHandler, {
                 baseArgs: [path, ctor],
@@ -26,13 +26,6 @@ export abstract class ApplicationPartBuilder implements IApplicationPartBuilder 
             })
         );
         return this;
-    }
-
-    private resolveConfigHandler(configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Constructor<IAppConfigureHandler>{
-        if(configure in configHandler ){
-            return <Constructor<IAppConfigureHandler>>configHandler;
-        }
-        return IAppConfigureHandler.create(<AppConfigureDelegate>configHandler)
     }
 
     addAction<T>(path: string, serviceId: ServiceIdentifier, action: ServiceRouterAction<T>): IApplicationPartBuilder;

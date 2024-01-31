@@ -1,6 +1,7 @@
 import { ILogger, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
-import { AsyncQuery, Query } from "@aster-js/iterators/lib/query"
+import { Query } from "@aster-js/iterators/lib/query"
 import { IApplicationPart } from "../abstraction/iapplication-part";
+import { IContainerRouteData } from "./icontainer-route-data";
 import { IRouter } from "./irouter";
 import { IRoutingHandler } from "./irouting-handler";
 import { RouteResolutionContext } from "./route-resolution-context";
@@ -10,9 +11,11 @@ const SEGMENT_SEPARATOR = "/";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
+
     constructor(
         @Many(IRoutingHandler) private readonly _handlers: IRoutingHandler[],
         @IApplicationPart private readonly _application: IApplicationPart,
+        @IContainerRouteData private readonly _routeData: IContainerRouteData,
         @ILogger private readonly _logger: ILogger
     ) {
     }
@@ -20,7 +23,6 @@ export class DefaultRouter implements IRouter {
     *getHandlers(): Iterable<IRoutingHandler> {
         yield* this._handlers;
     }
-
 
     async *getChildren(nested: boolean): AsyncIterable<IRouter> {
         for await (const childApp of this._application) {
@@ -31,6 +33,7 @@ export class DefaultRouter implements IRouter {
             }
         }
     }
+
     eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
         const parsedUrl = new URL(url, location.origin);
 
@@ -38,7 +41,7 @@ export class DefaultRouter implements IRouter {
         if (path.startsWith(SEGMENT_SEPARATOR)) path = path.substring(1);
         if (path.endsWith(SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
 
-        const segments = path.split(SEGMENT_SEPARATOR);
+        const segments = path ? path.split(SEGMENT_SEPARATOR) : [];
         const ctx = new RouteResolutionContext(this, segments);
 
         const search = new URLSearchParams(parsedUrl.search);
@@ -82,6 +85,7 @@ export class DefaultRouter implements IRouter {
 
         this._logger.info(`Routing match url "{relativeUrl}" with route "{routePath}"`, relativeUrl, handler.path, routeData);
         try {
+            this._routeData.setState(handler.route, mergedValues, query);
             await handler.handle(routeData, this._application);
         }
         catch (err) {

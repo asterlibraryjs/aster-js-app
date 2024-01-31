@@ -9,20 +9,24 @@ export class Route implements Iterable<IRouteSegment>{
     private readonly _wildcard?: true;
     private readonly _relative?: true;
 
+    static readonly empty = new Route([]);
+
     get wildcard(): boolean { return this._wildcard ?? false; }
 
     get relative(): boolean { return this._relative ?? false; }
 
     constructor(segments: Iterable<IRouteSegment>) {
         const array = [...segments];
-        if (array[array.length - 1] === WildcardRouteSegment.instance) {
-            array.pop();
-            this._wildcard = true;
-        }
+        if (array.length) {
+            if (array[array.length - 1] === WildcardRouteSegment.instance) {
+                array.pop();
+                this._wildcard = true;
+            }
 
-        if (array[0] === RelativeRouteSegment.instance) {
-            array.shift();
-            this._relative = true;
+            if (array.length && array[0] === RelativeRouteSegment.instance) {
+                array.shift();
+                this._relative = true;
+            }
         }
         this._segments = array;
     }
@@ -54,6 +58,8 @@ export class Route implements Iterable<IRouteSegment>{
     }
 
     static parse(route: string): Route {
+        if (!route || route === "/") return Route.empty;
+
         const segments = Route.parseRoute(route);
         return new Route(segments);
     }
@@ -77,7 +83,7 @@ export class Route implements Iterable<IRouteSegment>{
                 // 2 segments when ever their is "?": ""
                 const params = segment.split(NULLABLE_CHAR);
                 if (params.length === 2) {
-                    yield this.createDynamicSegment(params[0], true, params[1]);
+                    yield this.createDynamicSegment(params[0], true, params[1] || null);
                 }
                 else {
                     yield this.createDynamicSegment(segment, false);
@@ -89,7 +95,7 @@ export class Route implements Iterable<IRouteSegment>{
         }
     }
     // url/:value<enum|enum|enum>
-    private static createDynamicSegment(name: string, optional: boolean, defaultValue?: string) {
+    private static createDynamicSegment(name: string, optional: boolean, defaultValue: string | null = null) {
         if (name.startsWith("+")) {
             return new NumberRouteSegment(name.substring(1), optional, defaultValue);
         }

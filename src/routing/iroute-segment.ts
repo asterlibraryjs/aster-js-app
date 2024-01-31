@@ -62,15 +62,13 @@ export class StringRouteSegment implements IRouteSegment {
 
     get optional(): boolean { return this._optional; }
 
-    get defaultValue(): string | undefined { return this._defaultValue; }
+    get defaultValue(): string | null { return this._defaultValue; }
 
     constructor(
         private readonly _name: string,
         private readonly _optional: boolean,
-        private readonly _defaultValue?: string
-    ) {
-
-    }
+        private readonly _defaultValue: string | null
+    ) { }
 
     match(segment: string | undefined): boolean {
         if (typeof segment === "undefined") {
@@ -80,10 +78,8 @@ export class StringRouteSegment implements IRouteSegment {
     }
 
     read(ctx: RouteResolutionContext, values: RouteValues): void {
-        const value = ctx.shift() ?? this._defaultValue;
-        if (typeof value !== "undefined") {
-            this.loadValue(this._name, value, values);
-        }
+        const value = ctx.shift() || this._defaultValue;
+        if (value) this.loadValue(this._name, value, values);
     }
 
     protected loadValue(name: string, value: string, values: RouteValues): void {
@@ -97,7 +93,7 @@ export class EnumRouteSegment extends StringRouteSegment {
         name: string,
         private readonly _enums: string[],
         optional: boolean,
-        defaultValue?: string
+        defaultValue: string | null
     ) {
         super(name, optional, defaultValue);
     }

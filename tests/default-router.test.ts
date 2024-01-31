@@ -1,7 +1,23 @@
 import { assert } from "chai";
-import { IAppConfigureHandler, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
+import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
+import { IContainerRouteData } from "../src/routing/icontainer-route-data";
 
 describe("DefaultRouter", () => {
+
+    it("Should call default empty route", async () => {
+        let called = false;
+        const app = await SinglePageApplication.start("test", x => {
+            x.addAction("/", (ctx) => {
+                called = true;
+            });
+        });
+
+        const router = app.services.get(IRouter, true);
+        const result = await router.eval("https://localhost/", {});
+
+        assert.isTrue(result, "started");
+        assert.isTrue(called, "called");
+    });
 
     it("Should add default router", async () => {
         let called = false;
@@ -16,7 +32,8 @@ describe("DefaultRouter", () => {
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page?id=0", {});
 
-        assert.isTrue(result);
+        assert.isTrue(result, "started");
+        assert.isTrue(called, "called");
     });
 
     it("Should create a child module and continue to load the route", async () => {
@@ -28,8 +45,31 @@ describe("DefaultRouter", () => {
         });
 
         const router = app.services.get(IRouter, true);
-        const result =await router.eval("https://localhost/page/species/view/vertebrate", {});
+        const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
 
-        assert.isTrue(result);
+        assert.isTrue(result, "started");
+        assert.isTrue(called, "called");
+    });
+
+    it("Should create a child using configure handler and route data service", async () => {
+        let called = false;
+
+        class ViewConfigurationHandler implements IAppConfigureHandler {
+
+            constructor(@IContainerRouteData private readonly _routeData: IContainerRouteData) { }
+
+            [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
+                called = true
+                assert.equal(this._routeData.values["view"], "vertebrate");
+                builder.addAction("~/", () => { called = true; })
+            }
+        }
+
+        const app = await SinglePageApplication.start("test", x => x.addPart("/page/:app/view/:view", ViewConfigurationHandler));
+        const router = app.services.get(IRouter, true);
+        const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
+
+        assert.isTrue(result, "started");
+        assert.isTrue(called, "called");
     });
 });
