@@ -24,7 +24,7 @@ export class ContainerRouteData implements IContainerRouteData {
     private _values: Readonly<RouteValues> = Object.freeze({});
     private _query: Readonly<QueryValues> = Object.freeze({});
 
-    get route(): Route { return this.route }
+    get route(): Route { return this._route }
 
     get values(): Readonly<RouteValues> { return this._values; }
 

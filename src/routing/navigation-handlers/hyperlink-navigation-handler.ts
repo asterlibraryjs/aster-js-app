@@ -17,7 +17,7 @@ export class HyperlinkNavigationHandler implements IDisposable {
     }
 
     [ApplicationPartLifecycleHooks.activated](): Promise<void> {
-        if (!this._registration) {
+        if (typeof this._registration === "undefined") {
             this._registration = dom.on(document.body, "click", ev => this.onRootClick(<UIEvent>ev));
         }
         return Promise.resolve();
