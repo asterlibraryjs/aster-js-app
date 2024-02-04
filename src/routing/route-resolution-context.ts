@@ -33,6 +33,6 @@ export class RouteResolutionContext implements Iterable<string>{
     }
 
     toString(): string {
-        return this._segments.join("/");
+        return "/" + this._segments.join("/");
     }
 }

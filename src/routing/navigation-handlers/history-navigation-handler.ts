@@ -18,19 +18,20 @@ export class HistoryNavigationHandler implements IDisposable {
     }
 
     [ApplicationPartLifecycleHooks.activated](): Promise<void> {
-        if (!this._popstateHandle) {
-            this._popstateHandle = dom.on(window, "popstate", this.onNavigate);
+        if (typeof this._popstateHandle === "undefined") {
+            this._popstateHandle = dom.on(window, "popstate", ev => this.onNavigate(<PopStateEvent>ev));
         }
-        return Promise.resolve();
-    }
-
-    [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {
-        IDisposable.safeDispose(this._popstateHandle);
         return Promise.resolve();
     }
 
     private onNavigate(ev: PopStateEvent): void {
         this._router.eval(location.href, ev.state);
+    }
+
+    [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {
+        IDisposable.safeDispose(this._popstateHandle);
+        delete this._popstateHandle;
+        return Promise.resolve();
     }
 
     [Symbol.dispose](): void {
