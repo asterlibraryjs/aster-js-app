@@ -1,5 +1,4 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { IApplicationPart } from "../../abstraction";
 import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 
 import { IRouter } from "../irouter";

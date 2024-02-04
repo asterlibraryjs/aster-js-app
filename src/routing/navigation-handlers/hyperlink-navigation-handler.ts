@@ -1,14 +1,16 @@
 import { IDisposable } from "@aster-js/core";
 import { dom } from "@aster-js/dom";
-import { ServiceContract } from "@aster-js/ioc";
+import { Options, ServiceContract } from "@aster-js/ioc";
 import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 import { IRouter } from "../irouter";
+import { NavigationHandlerOptions } from "./navigation-handler-options";
 
 @ServiceContract(IApplicationPartLifecycle)
 export class HyperlinkNavigationHandler implements IDisposable {
     private _registration?: IDisposable;
 
     constructor(
+        @Options(NavigationHandlerOptions) private readonly _options: NavigationHandlerOptions,
         @IRouter private readonly _router: IRouter
     ) { }
 
@@ -49,14 +51,26 @@ export class HyperlinkNavigationHandler implements IDisposable {
         if (await this._router.eval(url.pathname)) {
             history.pushState({}, title, url);
         }
-        else {
+        else if (!this._options.disableAssignLocationForUnhandled) {
             location.assign(url);
         }
     }
 
     private findAnchor(ev: UIEvent): HTMLAnchorElement | undefined {
-        for (const item of ev.composedPath()) {
-            if (item instanceof HTMLAnchorElement) return item;
+        if (this._options.additionalLinkTagSelectors) {
+            for (const item of ev.composedPath()) {
+                if (item instanceof HTMLAnchorElement) return item;
+
+                if (item instanceof HTMLElement
+                    && item.matches(this._options.additionalLinkTagSelectors)) {
+                    return item as HTMLAnchorElement;
+                }
+            }
+        }
+        else {
+            for (const item of ev.composedPath()) {
+                if (item instanceof HTMLAnchorElement) return item;
+            }
         }
     }
 
