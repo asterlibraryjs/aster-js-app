@@ -1,6 +1,7 @@
 import { ServiceContract, ServiceIdentifier } from "@aster-js/ioc";
 import { Route } from "./route";
 import { QueryValues, RouteValues } from "./routing-invocation-context";
+import { IApplicationPart } from "../abstraction";
 
 /**
  * Service id and contract to store route data and query data result of navigation
@@ -23,9 +24,10 @@ export interface IContainerRouteData {
 
 @ServiceContract(IContainerRouteData)
 export class ContainerRouteData implements IContainerRouteData {
-    private _route: Route = Route.empty;
-    private _values: Readonly<RouteValues> = Object.freeze({});
-    private _query: Readonly<QueryValues> = Object.freeze({});
+    private _route: Route;
+    private _values: Readonly<RouteValues>;
+    private _query: Readonly<QueryValues>;
+    private readonly _parent: IContainerRouteData | undefined;
 
     get route(): Route { return this._route }
 
@@ -33,13 +35,33 @@ export class ContainerRouteData implements IContainerRouteData {
 
     get query(): Readonly<QueryValues> { return this._query; }
 
+    constructor(@IApplicationPart part: IApplicationPart) {
+        this._parent = part.parent?.services.get(IContainerRouteData);
+        if (this._parent) {
+            this._route = this._parent.route;
+            this._values = this._parent.values;
+            this._query = this._parent.query;
+        }
+        else {
+            this._route = Route.empty;
+            this._values = Object.freeze({});
+            this._query = Object.freeze({});
+        }
+    }
+
     getUrlSegment(): string {
         return this._route.resolve(this._values, false);
     }
 
     setState(route: Route, values: Readonly<RouteValues>, query: Readonly<QueryValues>): void {
         this._route = route;
-        this._values = Object.freeze(values);
-        this._query = Object.freeze(query);
+        if (this._parent) {
+            this._values = Object.freeze({ ...this._parent.values, ...values });
+            this._query = Object.freeze({ ...this._parent.query, ...query });
+        }
+        else {
+            this._values = Object.freeze(values);
+            this._query = Object.freeze(query);
+        }
     }
 }

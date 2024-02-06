@@ -1,5 +1,5 @@
-import { IApplicationPart } from "../abstraction";
-import { IRoutingResult } from "./irouting-result";
+import { IApplicationPart } from "../../abstraction";
+import { IRoutingResult } from "../irouting-result";
 
 
 export enum HtmlInsertionMode {
