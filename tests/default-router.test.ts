@@ -1,12 +1,13 @@
 import { assert } from "chai";
 import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
 import { IContainerRouteData } from "../src/routing/icontainer-route-data";
+import { Query } from "@aster-js/iterators";
 
 describe("DefaultRouter", () => {
 
     it("Should call default empty route", async () => {
         let called = false;
-        const app = await SinglePageApplication.start("test", x => {
+        using app = await SinglePageApplication.start("test", x => {
             x.addAction("/", (ctx) => {
                 called = true;
             });
@@ -21,7 +22,7 @@ describe("DefaultRouter", () => {
 
     it("Should add default router", async () => {
         let called = false;
-        const app = await SinglePageApplication.start("test", x => {
+        using app = await SinglePageApplication.start("test", x => {
             x.addAction("/page/:name?index", (ctx) => {
                 called = true;
                 assert.equal("index", ctx.data.values["name"]);
@@ -38,7 +39,7 @@ describe("DefaultRouter", () => {
 
     it("Should create a child module and continue to load the route", async () => {
         let called = false;
-        const app = await SinglePageApplication.start("test", x => {
+        using app = await SinglePageApplication.start("test", x => {
             x.addPart("/page/:part/*", x => {
                 x.addAction("~/view/:view", _ => { called = true; });
             });
@@ -53,7 +54,7 @@ describe("DefaultRouter", () => {
 
     it("Should load 2 nested application parts", async () => {
         let idCaptured = 0;
-        const app = await SinglePageApplication.start("test", x => {
+        using app = await SinglePageApplication.start("test", x => {
             x.addPart("/page/:part/*", x => {
                 x.addPart("/view/:part/*", x => {
                     x.addAction("~/:+id", ({ data }) => { idCaptured = <number>data.values["id"]; });
@@ -81,7 +82,7 @@ describe("DefaultRouter", () => {
             }
         }
 
-        const app = await SinglePageApplication.start("test", x => x.addPart("/page/:part/view/:view", ViewConfigurationHandler));
+        using app = await SinglePageApplication.start("test", x => x.addPart("/page/:part/view/:view", ViewConfigurationHandler));
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
 

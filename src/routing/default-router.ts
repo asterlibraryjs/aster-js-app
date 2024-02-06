@@ -1,16 +1,16 @@
-import { ILogger, LogLevel, Many, ServiceContract } from "@aster-js/ioc";
-import { Query } from "@aster-js/iterators/lib/query"
+import { ILogger, LogLevel, Many, ServiceContract, findRootService } from "@aster-js/ioc";
+import { Query } from "@aster-js/iterators";
 import { IApplicationPart } from "../abstraction/iapplication-part";
 import { IContainerRouteData } from "./icontainer-route-data";
 import { IRouter } from "./irouter";
 import { IRoutingHandler } from "./irouting-handler";
 import { RouteResolutionContext } from "./route-resolution-context";
 import { QueryValues, RouteValues } from "./routing-invocation-context";
-
-const SEGMENT_SEPARATOR = "/";
+import { RoutingConstants } from "./routing-constants";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
+    private _lastUrlEvaluated?: URL;
 
     constructor(
         @Many(IRoutingHandler) private readonly _handlers: IRoutingHandler[],
@@ -36,15 +36,33 @@ export class DefaultRouter implements IRouter {
     }
 
     eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
-        const parsedUrl = new URL(url, location.origin);
+        let path: string;
+        let query: QueryValues;
+        if (url.startsWith(RoutingConstants.RELATIVE_CHAR)) {
+            const finalUrl = new URL(url, location.origin)
+            path = finalUrl.pathname;
+            query = QueryValues.parse(finalUrl.search);
+        }
+        else {
+            const root = findRootService(IRouter, this._application);
+            if (root && root !== this) {
+                return root.eval(url, defaults);
+            }
+            // Non relative path
+            const finalUrl = new URL(url, location.origin);
+            if (finalUrl.pathname === this._lastUrlEvaluated?.pathname) {
+                return Promise.resolve(true);
+            }
+            this._lastUrlEvaluated = finalUrl;
+            path = finalUrl.pathname;
+            query = QueryValues.parse(finalUrl.search);
+        }
 
-        let path = parsedUrl.pathname;
-        if (path.startsWith(SEGMENT_SEPARATOR)) path = path.substring(1);
-        if (path.endsWith(SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
+        if (path.startsWith(RoutingConstants.SEGMENT_SEPARATOR)) path = path.substring(1);
+        if (path.endsWith(RoutingConstants.SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
 
-        const segments = path ? path.split(SEGMENT_SEPARATOR) : [];
+        const segments = path ? path.split(RoutingConstants.SEGMENT_SEPARATOR) : [];
         const ctx = new RouteResolutionContext(this, segments);
-        const query = QueryValues.parse(parsedUrl.search);
 
         return this.handle(ctx, defaults, query);
     }

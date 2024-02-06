@@ -1,10 +1,11 @@
 import { RouteResolutionContext } from "./route-resolution-context";
-import { RELATIVE_CHAR, WILDCARD_CHAR } from "./routing-constants";
+import { RoutingConstants } from "./routing-constants";
 import { RouteValues } from "./routing-invocation-context";
 
 export interface IRouteSegment {
     match(segment: string | undefined): boolean;
     read(ctx: RouteResolutionContext, values: RouteValues): void;
+    resolve(values: RouteValues, consume?: boolean): string | null;
 }
 
 function shiftOrThrow(ctx: RouteResolutionContext, value: string): void {
@@ -30,6 +31,10 @@ export class StaticRouteSegment implements IRouteSegment {
     read(ctx: RouteResolutionContext, values: RouteValues): void {
         shiftOrThrow(ctx, this._segment);
     }
+
+    resolve(values: RouteValues, consume?: boolean): string | null {
+        return this._segment;
+    }
 }
 
 export class WildcardRouteSegment implements IRouteSegment {
@@ -40,7 +45,11 @@ export class WildcardRouteSegment implements IRouteSegment {
     match(segment: string | undefined): boolean { return true; }
 
     read(ctx: RouteResolutionContext, values: RouteValues): void {
-        shiftOrThrow(ctx, WILDCARD_CHAR);
+        shiftOrThrow(ctx, RoutingConstants.WILDCARD_CHAR);
+    }
+
+    resolve(values: RouteValues, consume?: boolean): string | null {
+        return null;
     }
 }
 
@@ -52,7 +61,11 @@ export class RelativeRouteSegment implements IRouteSegment {
     match(segment: string | undefined): boolean { return true; }
 
     read(ctx: RouteResolutionContext, values: RouteValues): void {
-        shiftOrThrow(ctx, RELATIVE_CHAR);
+        shiftOrThrow(ctx, RoutingConstants.RELATIVE_CHAR);
+    }
+
+    resolve(values: RouteValues, consume?: boolean): string | null {
+        return null;
     }
 }
 
@@ -84,6 +97,19 @@ export class StringRouteSegment implements IRouteSegment {
 
     protected loadValue(name: string, value: string, values: RouteValues): void {
         values[name] = value;
+    }
+
+    resolve(values: RouteValues, consume?: boolean): string | null {
+        if (Reflect.has(values, this._name)) {
+            const value = values[this._name];
+            if (consume) delete values[this._name];
+            return String(value);
+        }
+
+        if (!this._optional || this._defaultValue === null)
+            throw new Error(`Missing value for route value "${this._name}"`);
+
+        return this._defaultValue;
     }
 }
 

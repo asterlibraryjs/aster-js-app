@@ -3,14 +3,18 @@ import { IApplicationPartBuilder, IApplicationPart } from "../abstraction";
 import { configure, IAppConfigureHandler } from "../abstraction/iapp-configure-handler";
 import { HyperlinkNavigationHandler, DefaultRouter, DefaultNavigationHandler, HistoryNavigationHandler } from "../routing";
 import { ContainerRouteData } from "../routing/icontainer-route-data";
+import { RoutingOptions, defaultRoutingOptions } from "../routing/routing-options";
+import { DefaultNavigationService } from "../navigation/navigation-service";
 
 export class DefaultApplicationConfigureHandler implements IAppConfigureHandler {
     [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
         builder.configure(x => {
-            x.addSingleton(DefaultNavigationHandler, { scope: ServiceScope.container })
+            x.addInstance(RoutingOptions, defaultRoutingOptions)
+                .addSingleton(DefaultNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HistoryNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HyperlinkNavigationHandler, { scope: ServiceScope.container })
                 .addScoped(ContainerRouteData)
+                .addScoped(DefaultNavigationService)
                 .addScoped(DefaultRouter);
         });
     }

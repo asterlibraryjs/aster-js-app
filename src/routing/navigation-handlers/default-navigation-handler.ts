@@ -12,12 +12,12 @@ export class DefaultNavigationHandler {
         this._self = this;
     }
 
-    async [ApplicationPartLifecycleHooks.setup](): Promise<void> {
-        await this._self._router.eval(location.href);
+    [ApplicationPartLifecycleHooks.setup](): Promise<void> {
         return Promise.resolve();
     }
 
-    [ApplicationPartLifecycleHooks.activated](): Promise<void> {
+    async [ApplicationPartLifecycleHooks.activated](): Promise<void> {
+        await this._self._router.eval(location.href);
         return Promise.resolve();
     }
 

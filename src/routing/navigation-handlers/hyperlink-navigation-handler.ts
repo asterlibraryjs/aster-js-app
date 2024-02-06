@@ -3,14 +3,14 @@ import { dom } from "@aster-js/dom";
 import { Options, ServiceContract } from "@aster-js/ioc";
 import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 import { IRouter } from "../irouter";
-import { NavigationHandlerOptions } from "./navigation-handler-options";
+import { RoutingOptions } from "../routing-options";
 
 @ServiceContract(IApplicationPartLifecycle)
 export class HyperlinkNavigationHandler implements IDisposable {
     private _registration?: IDisposable;
 
     constructor(
-        @Options(NavigationHandlerOptions) private readonly _options: NavigationHandlerOptions,
+        @Options(RoutingOptions) private readonly _options: RoutingOptions,
         @IRouter private readonly _router: IRouter
     ) { }
 
@@ -36,7 +36,10 @@ export class HyperlinkNavigationHandler implements IDisposable {
         const anchor = this.findAnchor(ev);
         if (!anchor) return;
 
-        const url = new URL(anchor.href, location.href);
+        const href = anchor.getAttribute("href");
+        if (!href) return;
+
+        const url = new URL(href, location.href);
         if (location.origin !== url.origin) return;
 
         ev.preventDefault();
@@ -51,25 +54,16 @@ export class HyperlinkNavigationHandler implements IDisposable {
         if (await this._router.eval(url.pathname)) {
             history.pushState({}, title, url);
         }
-        else if (!this._options.disableAssignLocationForUnhandled) {
+        else if (!this._options.assignLocationForUnhandled) {
             location.assign(url);
         }
     }
 
-    private findAnchor(ev: UIEvent): HTMLAnchorElement | undefined {
-        if (this._options.additionalLinkTagSelectors) {
-            for (const item of ev.composedPath()) {
-                if (item instanceof HTMLAnchorElement) return item;
-
-                if (item instanceof HTMLElement
-                    && item.matches(this._options.additionalLinkTagSelectors)) {
-                    return item as HTMLAnchorElement;
-                }
-            }
-        }
-        else {
-            for (const item of ev.composedPath()) {
-                if (item instanceof HTMLAnchorElement) return item;
+    private findAnchor(ev: UIEvent): HTMLElement | undefined {
+        for (const item of ev.composedPath()) {
+            if (item instanceof HTMLElement
+                && item.matches(this._options.linkTagSelectors)) {
+                return item as HTMLElement;
             }
         }
     }

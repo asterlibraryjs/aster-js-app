@@ -1,7 +1,7 @@
 import { AbortToken, assertAllSettledResult, Delayed } from "@aster-js/async";
 import { Constructor, DisposableHost, IDisposable } from "@aster-js/core";
 import { IIoCContainerBuilder, IIoCModule, IServiceDescriptor, IServiceFactory, IServiceProvider, ServiceCollection, ServiceIdentifier, ServiceProvider, ServiceScope } from "@aster-js/ioc";
-import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
+import { AppConfigureType, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { Memoize } from "@aster-js/decorators";
 import { ApplicationPartLifecycleHook, ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
 import { ApplicationPartLifecycleWrapper } from "./application-part-lifecycle-wrapper";
@@ -91,7 +91,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
     start(): Promise<boolean> { return this._module.start(); }
 
-    async load(name: string, handlerCtor: Constructor<IAppConfigureHandler>): Promise<IApplicationPart> {
+    async load(name: string, handlerType: AppConfigureType): Promise<IApplicationPart> {
         const current = this._children.get(name);
         if (current) {
             await this.activate(name);
@@ -100,6 +100,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
         const builder = this.createAppBuilder(name);
 
+        const handlerCtor = IAppConfigureHandler.resolve(handlerType);
         const handler = this.services.createInstance(handlerCtor);
         handler[configure](builder, this);
 
