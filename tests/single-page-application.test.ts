@@ -6,6 +6,10 @@ import { spy, assert as sassert } from "sinon";
 
 describe("SinglePageApplication", () => {
 
+    beforeEach(() => {
+        history.replaceState({}, "", location.origin);
+    });
+
     function assertKernelServices({ services }: IIoCModule) {
         // Logger
         const logger = services.get(ILogger);
@@ -37,7 +41,7 @@ describe("SinglePageApplication", () => {
     }
 
     it("Should create an empty application", () => {
-        const app = SinglePageApplication.create("test").build();
+       using app = SinglePageApplication.create("test").build();
 
         assert.isFalse(app.running, "Application not started");
         assertKernelServices(app);
@@ -54,7 +58,7 @@ describe("SinglePageApplication", () => {
         class Service {
             initialized: boolean = false;
         }
-        const app = await SinglePageApplication.start("test", x => {
+        using app = await SinglePageApplication.start("test", x => {
             x.configure(x => x.addSingleton(Service));
             x.setup(Service, x => x.initialized = true)
         });
@@ -75,7 +79,7 @@ describe("SinglePageApplication", () => {
                 return Promise.resolve();
             }
         }
-        const app = await SinglePageApplication.start("test", x => x.configure(x => x.addSingleton(Service)));
+        using app = await SinglePageApplication.start("test", x => x.configure(x => x.addSingleton(Service)));
 
         const id = resolveServiceId(Service);
         const service = app.services.get(id, true);
@@ -101,7 +105,7 @@ describe("SinglePageApplication", () => {
             }
         }
 
-        const app = await SinglePageApplication.start("LoadTest", x =>
+        using app = await SinglePageApplication.start("LoadTest", x =>
             x.addPart("/:part?index", x =>
                 x.configure(x => x.addSingleton(Service))
                     .setup(Service, x => x.state = "initialized")

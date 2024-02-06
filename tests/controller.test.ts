@@ -46,7 +46,7 @@ describe("Controller", () => {
             }
         }
 
-        const app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
+        using app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
             builder.addController(CustomerViewController);
         }));
 
@@ -74,7 +74,7 @@ describe("Controller", () => {
             }
         }
 
-        const app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
+        using app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
             builder.addPart("/:part<customer>/*", x => {
                 x.addController(CustomerViewController);
             });

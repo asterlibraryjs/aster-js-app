@@ -1,6 +1,6 @@
 {
   "name": "@aster-js/app",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "description": "Aster core library part of Aster js library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -32,8 +32,8 @@
     "@aster-js/decorators": "^1.1.0",
     "@aster-js/dom": "1.1.0",
     "@aster-js/events": "^1.3.0",
-    "@aster-js/ioc": "^1.6.0",
-    "@aster-js/iterators": "^1.1.0",
+    "@aster-js/ioc": "^1.6.1",
+    "@aster-js/iterators": "^1.2.0",
     "tslib": "^2.6.2"
   },
   "devDependencies": {

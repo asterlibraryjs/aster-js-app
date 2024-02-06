@@ -16,6 +16,9 @@ export interface IContainerRouteData {
     readonly query: Readonly<QueryValues>;
 
     setState(route: Route, values: Readonly<RouteValues>, query: Readonly<QueryValues>): void;
+
+    /** Returns current container url segment */
+    getUrlSegment(): string;
 }
 
 @ServiceContract(IContainerRouteData)
@@ -29,6 +32,10 @@ export class ContainerRouteData implements IContainerRouteData {
     get values(): Readonly<RouteValues> { return this._values; }
 
     get query(): Readonly<QueryValues> { return this._query; }
+
+    getUrlSegment(): string {
+        return this._route.resolve(this._values, false);
+    }
 
     setState(route: Route, values: Readonly<RouteValues>, query: Readonly<QueryValues>): void {
         this._route = route;

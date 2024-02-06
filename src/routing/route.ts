@@ -1,7 +1,7 @@
 import { IRouteSegment, WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment, NumberRouteSegment, StringRouteSegment, EnumRouteSegment } from "./iroute-segment";
 import { RouteResolutionContext } from "./route-resolution-context";
 import { RouteValues } from "./routing-invocation-context";
-import { ASSIGN_CHAR, NULLABLE_CHAR, SEGMENT_SEPARATOR, WILDCARD_CHAR, RELATIVE_CHAR } from "./routing-constants";
+import { RoutingConstants } from "./routing-constants";
 
 /** */
 export class Route implements Iterable<IRouteSegment>{
@@ -53,35 +53,42 @@ export class Route implements Iterable<IRouteSegment>{
         return values;
     }
 
+    resolve(values: RouteValues, consume?: boolean): string {
+        return this._segments
+            .map(segment => segment.resolve(values, consume))
+            .filter(Boolean)
+            .join(RoutingConstants.SEGMENT_SEPARATOR);
+    }
+
     *[Symbol.iterator](): IterableIterator<IRouteSegment> {
         yield* this._segments;
     }
 
     static parse(route: string): Route {
-        if (!route || route === "/") return Route.empty;
+        if (!route || route === RoutingConstants.SEGMENT_SEPARATOR) return Route.empty;
 
         const segments = Route.parseRoute(route);
         return new Route(segments);
     }
 
     private static * parseRoute(route: string): Iterable<IRouteSegment> {
-        const segments = route.split(SEGMENT_SEPARATOR).filter(Boolean);
+        const segments = route.split(RoutingConstants.SEGMENT_SEPARATOR).filter(Boolean);
 
-        if (segments[0] === RELATIVE_CHAR) {
+        if (segments[0] === RoutingConstants.RELATIVE_CHAR) {
             segments.shift();
             yield RelativeRouteSegment.instance;
         }
 
         for (let segment of segments) {
-            if (segment === WILDCARD_CHAR) {
+            if (segment === RoutingConstants.WILDCARD_CHAR) {
                 yield WildcardRouteSegment.instance;
                 break;
             }
 
-            if (segment.startsWith(ASSIGN_CHAR)) {
+            if (segment.startsWith(RoutingConstants.ASSIGN_CHAR)) {
                 segment = segment.substring(1);
                 // 2 segments when ever their is "?": ""
-                const params = segment.split(NULLABLE_CHAR);
+                const params = segment.split(RoutingConstants.NULLABLE_CHAR);
                 if (params.length === 2) {
                     yield this.createDynamicSegment(params[0], true, params[1] || null);
                 }
@@ -96,12 +103,12 @@ export class Route implements Iterable<IRouteSegment>{
     }
     // url/:value<enum|enum|enum>
     private static createDynamicSegment(name: string, optional: boolean, defaultValue: string | null = null) {
-        if (name.startsWith("+")) {
+        if (name.startsWith(RoutingConstants.NUMBER_INDICATOR_CHAR)) {
             return new NumberRouteSegment(name.substring(1), optional, defaultValue);
         }
-        const idx = name.indexOf("<");
-        if (idx !== -1 && name.endsWith(">")) {
-            const values = name.substring(idx + 1, name.length - 1).split("|");
+        const idx = name.indexOf(RoutingConstants.ENUM_OPEN_CHAR);
+        if (idx !== -1 && name.endsWith(RoutingConstants.ENUM_CLOSE_CHAR)) {
+            const values = name.substring(idx + 1, name.length - 1).split(RoutingConstants.ENUM_SEPARATOR_CHAR);
             name = name.substring(0, idx);
             return new EnumRouteSegment(name, values, optional, defaultValue);
         }
