@@ -41,8 +41,10 @@ export class DefaultRouter implements IRouter {
     eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
         let path: string;
         let query: SearchValues;
-        if (url.startsWith(RoutingConstants.RELATIVE_CHAR)) {
-            const finalUrl = new URL(url, location.origin)
+
+        const isRelative = url.startsWith(RoutingConstants.RELATIVE_CHAR);
+        if (isRelative) {
+            const finalUrl = new URL(url.substring(1), location.origin)
             path = finalUrl.pathname;
             query = SearchValues.parse(finalUrl.search);
         }
@@ -65,7 +67,7 @@ export class DefaultRouter implements IRouter {
         if (path.endsWith(RoutingConstants.SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
 
         const segments = path ? path.split(RoutingConstants.SEGMENT_SEPARATOR) : [];
-        const ctx = new RouteResolutionContext(this, segments);
+        const ctx = new RouteResolutionContext(this, segments, isRelative);
 
         return this.handle(ctx, defaults, query);
     }
@@ -84,7 +86,7 @@ export class DefaultRouter implements IRouter {
     }
 
     private async resolveHandler(ctx: RouteResolutionContext): Promise<IRoutingHandler | undefined> {
-        if (ctx.initiator === this) {
+        if (ctx.relative) {
             const children = this.getActiveChildren(true);
             return Query(children)
                 .prepend(this)

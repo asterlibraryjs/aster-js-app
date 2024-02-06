@@ -8,9 +8,12 @@ export class RouteResolutionContext implements Iterable<string>{
 
     get initialSize(): number { return this._initialSize; }
 
+    get relative(): boolean { return this._relative; }
+
     constructor(
         readonly initiator: IRouter | null,
-        segments: Iterable<string>
+        segments: Iterable<string>,
+        private _relative: boolean
     ) {
         this._segments = [...segments].map(decodeURIComponent);
         this._initialSize = this._segments.length;
@@ -25,6 +28,7 @@ export class RouteResolutionContext implements Iterable<string>{
     }
 
     shift(): string | undefined {
+        this._relative = true;
         return this._segments.shift();
     }
 

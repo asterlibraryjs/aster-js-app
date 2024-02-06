@@ -15,12 +15,10 @@ export class DefaultNavigationService implements INavigationService {
 
     async navigate(relativeUrl: string, replace: boolean = false): Promise<void> {
         const isRelative = relativeUrl.startsWith(RoutingConstants.RELATIVE_CHAR);
-        if (isRelative) {
-            relativeUrl = RoutingConstants.RELATIVE_URL_CHAR + relativeUrl.substring(1);
-        }
 
+        const coercedUrl = isRelative ? relativeUrl : RoutingConstants.RELATIVE_URL_CHAR + relativeUrl.substring(1);
         const baseAddress = this.getBaseAddress(isRelative);
-        const url = new URL(relativeUrl, baseAddress);
+        const url = new URL(coercedUrl, baseAddress);
 
         if (replace) {
             history.replaceState({}, "", url);
@@ -37,6 +35,7 @@ export class DefaultNavigationService implements INavigationService {
             const path = RoutingConstants.SEGMENT_SEPARATOR + Query(all)
                 .map(x => x.path)
                 .toArray()
+                .reverse()
                 .join(RoutingConstants.SEGMENT_SEPARATOR)
                 + RoutingConstants.SEGMENT_SEPARATOR;
 
