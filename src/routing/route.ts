@@ -33,7 +33,7 @@ export class Route implements Iterable<IRouteSegment>{
 
     match(ctx: RouteResolutionContext): boolean {
         if (!this._wildcard && ctx.remaining > this._segments.length) return false;
-        if (this._relative && ctx.remaining === ctx.initialSize) return false;
+        if (this._relative && !ctx.relative) return false;
 
         for (let idx = 0; idx < this._segments.length; idx++) {
             const value = ctx.getAt(idx);
