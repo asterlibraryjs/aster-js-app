@@ -1,5 +1,5 @@
-import { AppConfigureType, IApplicationPart } from "../abstraction";
-import { IRoutingResult } from "./irouting-result";
+import { AppConfigureType, IApplicationPart } from "../../abstraction";
+import { IRoutingResult } from "../irouting-result";
 
 
 export function partResult(name: string, configure: AppConfigureType): IRoutingResult {
