@@ -9,3 +9,4 @@ export * from "./route";
 export * from "./routing-invocation-context";
 export * from "./icontainer-route-data";
 export * from "./ipart-route-data";
+export * from "./iroute-data";
