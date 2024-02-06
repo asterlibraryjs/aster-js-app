@@ -1,6 +1,5 @@
 import { Delayed } from "@aster-js/async";
-import { DisposableHost } from "@aster-js/core";
-import { IIoCModule, IIoCContainerBuilder } from "@aster-js/ioc";
+import {  IIoCContainerBuilder } from "@aster-js/ioc";
 import { IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPart } from "./application-part";
 import { ApplicationPartBuilder } from "./application-part-builder";
