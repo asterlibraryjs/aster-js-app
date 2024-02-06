@@ -116,7 +116,7 @@ describe("Route", () => {
 
     it("Should get all route values", () => {
         const route = Route.parse("/items/:item/:mode<get|set>/field/:field?description/:+id?");
-        const ctx = new RouteResolutionContext(null, "items/robots/set/field/title/55".split("/"));
+        const ctx = new RouteResolutionContext(null, "items/robots/set/field/title/55".split("/"), false);
 
         const [path, values] = route.getRouteValues(ctx);
 
@@ -127,7 +127,7 @@ describe("Route", () => {
     it("Should get all route values", () => {
         const route1 = Route.parse("/items/:item/:mode<get|set>");
         const route2 = Route.parse("/items/:item/:mode");
-        const ctx = new RouteResolutionContext(null, "items/robots/bob".split("/"));
+        const ctx = new RouteResolutionContext(null, "items/robots/bob".split("/"), false);
 
         assert.isFalse(route1.match(ctx));
         assert.isTrue(route2.match(ctx));
@@ -135,7 +135,7 @@ describe("Route", () => {
 
     it("Should match a single value with a default", () => {
         const route = Route.parse("/:part?index");
-        const ctx = new RouteResolutionContext(null, ["context.html"]);
+        const ctx = new RouteResolutionContext(null, ["context.html"], false);
 
         assert.isTrue(route.match(ctx));
     });
@@ -146,7 +146,7 @@ describe("Route", () => {
         assert.isTrue(route.wildcard, "Is wildcard");
         assert.isFalse(route.relative, "Is relative");
 
-        const ctx = new RouteResolutionContext(null, ["items", "robots", "field", "title", "55"]);
+        const ctx = new RouteResolutionContext(null, ["items", "robots", "field", "title", "55"], false);
 
         const match = route.match(ctx);
 

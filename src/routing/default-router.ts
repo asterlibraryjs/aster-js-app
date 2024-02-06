@@ -86,7 +86,7 @@ export class DefaultRouter implements IRouter {
     }
 
     private async resolveHandler(ctx: RouteResolutionContext): Promise<IRoutingHandler | undefined> {
-        if (ctx.relative) {
+        if (!ctx.relative) {
             const children = this.getActiveChildren(true);
             return Query(children)
                 .prepend(this)

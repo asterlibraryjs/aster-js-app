@@ -16,7 +16,7 @@ export class DefaultNavigationService implements INavigationService {
     async navigate(relativeUrl: string, replace: boolean = false): Promise<void> {
         const isRelative = relativeUrl.startsWith(RoutingConstants.RELATIVE_CHAR);
 
-        const coercedUrl = isRelative ? relativeUrl : RoutingConstants.RELATIVE_URL_CHAR + relativeUrl.substring(1);
+        const coercedUrl = isRelative ? RoutingConstants.RELATIVE_URL_CHAR + relativeUrl.substring(1) : relativeUrl;
         const baseAddress = this.getBaseAddress(isRelative);
         const url = new URL(coercedUrl, baseAddress);
 
