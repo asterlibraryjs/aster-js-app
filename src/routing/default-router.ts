@@ -1,21 +1,24 @@
 import { ILogger, LogLevel, Many, ServiceContract, findRootService } from "@aster-js/ioc";
 import { Query } from "@aster-js/iterators";
 import { IApplicationPart } from "../abstraction/iapplication-part";
-import { IContainerRouteData } from "./icontainer-route-data";
 import { IRouter } from "./irouter";
 import { IRoutingHandler } from "./irouting-handler";
 import { RouteResolutionContext } from "./route-resolution-context";
-import { QueryValues, RouteValues } from "./routing-invocation-context";
+import { SearchValues, RouteValues } from "./routing-invocation-context";
 import { RoutingConstants } from "./routing-constants";
+import { EventEmitter, IEvent } from "@aster-js/events";
+import { Route } from "./route";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
+    private readonly _onDidEvaluate: EventEmitter<[string, Route, RouteValues, SearchValues]> = new EventEmitter();
     private _lastUrlEvaluated?: URL;
+
+    get onDidEvaluate():IEvent<[string, Route, RouteValues, SearchValues]> { return this._onDidEvaluate.event; }
 
     constructor(
         @Many(IRoutingHandler) private readonly _handlers: IRoutingHandler[],
         @IApplicationPart private readonly _application: IApplicationPart,
-        @IContainerRouteData private readonly _routeData: IContainerRouteData,
         @ILogger private readonly _logger: ILogger
     ) {
     }
@@ -37,11 +40,11 @@ export class DefaultRouter implements IRouter {
 
     eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
         let path: string;
-        let query: QueryValues;
+        let query: SearchValues;
         if (url.startsWith(RoutingConstants.RELATIVE_CHAR)) {
             const finalUrl = new URL(url, location.origin)
             path = finalUrl.pathname;
-            query = QueryValues.parse(finalUrl.search);
+            query = SearchValues.parse(finalUrl.search);
         }
         else {
             const root = findRootService(IRouter, this._application);
@@ -55,7 +58,7 @@ export class DefaultRouter implements IRouter {
             }
             this._lastUrlEvaluated = finalUrl;
             path = finalUrl.pathname;
-            query = QueryValues.parse(finalUrl.search);
+            query = SearchValues.parse(finalUrl.search);
         }
 
         if (path.startsWith(RoutingConstants.SEGMENT_SEPARATOR)) path = path.substring(1);
@@ -67,7 +70,7 @@ export class DefaultRouter implements IRouter {
         return this.handle(ctx, defaults, query);
     }
 
-    async handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<boolean> {
+    async handle(ctx: RouteResolutionContext, values: RouteValues, query: SearchValues): Promise<boolean> {
         const handler = await this.resolveHandler(ctx);
 
         if (!handler) {
@@ -93,16 +96,16 @@ export class DefaultRouter implements IRouter {
             .findFirst(x => x.route.match(ctx));
     }
 
-    private async invokeHandler(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<void> {
+    private async invokeHandler(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: SearchValues): Promise<void> {
         const relativeUrl = ctx.toString();
-        const localValues = handler.route.getRouteValues(ctx);
+        const [path, localValues] = handler.route.getRouteValues(ctx);
         const mergedValues = Object.assign({}, values, localValues);
 
         const routeData = { values: mergedValues, query };
 
         this._logger.info(`Routing match url "{relativeUrl}" with route "{routePath}"`, relativeUrl, handler.path, routeData);
         try {
-            this._routeData.setState(handler.route, mergedValues, query);
+            this._onDidEvaluate.emit(path, handler.route, mergedValues, query);
             await handler.handle(routeData, this._application);
         }
         catch (err) {

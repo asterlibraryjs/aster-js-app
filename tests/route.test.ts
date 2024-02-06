@@ -57,8 +57,8 @@ describe("Route", () => {
         assertEnumSegment(segment, "bob", true, "transparent");
 
         assert.isTrue(segment.match("yellow"), "1");
-        assert.isTrue(segment.match(undefined),"2");
-        assert.isFalse(segment.match("transparent"),"3");
+        assert.isTrue(segment.match(undefined), "2");
+        assert.isFalse(segment.match("transparent"), "3");
     });
 
     it("Should parse a single dynamic string optional segment", () => {
@@ -118,9 +118,10 @@ describe("Route", () => {
         const route = Route.parse("/items/:item/:mode<get|set>/field/:field?description/:+id?");
         const ctx = new RouteResolutionContext(null, "items/robots/set/field/title/55".split("/"));
 
-        const values = route.getRouteValues(ctx);
+        const [path, values] = route.getRouteValues(ctx);
 
-        assert.deepEqual({ item: "robots", mode: "set", field: "title", id: 55 }, values);
+        assert.equal(path, "items/robots/set/field/title/55");
+        assert.deepEqual(values, { item: "robots", mode: "set", field: "title", id: 55 });
     });
 
     it("Should get all route values", () => {
@@ -151,7 +152,7 @@ describe("Route", () => {
 
         assert.isTrue(match, "Is match");
 
-        const values = route.getRouteValues(ctx);
+        const [,values] = route.getRouteValues(ctx);
 
         assert.deepEqual({ item: "robots" }, values);
     });

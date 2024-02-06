@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { htmlResult, IAppConfigureHandler, IApplicationPart, IRouter, IRoutingResult, Param, ParamValues, Query, QueryValues, RouteData, RoutePath, RouteValue, RouteValues, SinglePageApplication } from "../src";
+import { htmlResult, IAppConfigureHandler, IApplicationPart, IRouter, IRoutingResult, FromUrl, UrlValues, FromSearch, SearchValues, RouteData, RoutePath, FromRoute, RouteValues, SinglePageApplication } from "../src";
 
 describe("Controller", () => {
 
@@ -14,19 +14,19 @@ describe("Controller", () => {
             @RoutePath("/customer/:+customerId/detail/:+id/:text")
             async showDetail(
 
-                @RouteValue("text") text: string,
+                @FromRoute("text") text: string,
 
-                @RouteValue("id") routeValueId: number,
-                @Query("id") queryId: string,
-                @Param("id") paramId: number | string,
+                @FromRoute("id") routeValueId: number,
+                @FromSearch("id") queryId: string,
+                @FromUrl("id") paramId: number | string,
 
-                @RouteValue("customerId") customerRouteValueId: number,
-                @Query("customerId") customerQueryId: string,
-                @Param("customerId") customerParamId: number | string,
+                @FromRoute("customerId") customerRouteValueId: number,
+                @FromSearch("customerId") customerQueryId: string,
+                @FromUrl("customerId") customerParamId: number | string,
 
-                @RouteValue() allRouteValues: RouteValues,
-                @Query() allQuery: QueryValues,
-                @Param() allParams: ParamValues
+                @FromRoute() allRouteValues: RouteValues,
+                @FromSearch() allQuery: SearchValues,
+                @FromUrl() allParams: UrlValues
 
             ): Promise<IRoutingResult> {
 
@@ -69,7 +69,7 @@ describe("Controller", () => {
             }
 
             @RoutePath("~/detail/:+id")
-            async showDetail(@RouteValue("id") id: number): Promise<IRoutingResult> {
+            async showDetail(@FromRoute("id") id: number): Promise<IRoutingResult> {
                 return htmlResult(`<i>Selected ID: ${id}</i>`, root);
             }
         }

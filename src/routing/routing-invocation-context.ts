@@ -5,15 +5,15 @@ import { Route } from "./route";
 export type RouteValues = Record<string, string | number>;
 
 /** Values extracted from the url search */
-export type QueryValues = Record<string, string | string[]>;
+export type SearchValues = Record<string, string | string[]>;
 
 /** Represents a merge of values comming from RouteValues and QueryValues where QueryValues can override RouteValues */
-export type ParamValues = Record<string, string | string[] | number>;
+export type UrlValues = Record<string, string | string[] | number>;
 
-export namespace QueryValues {
+export namespace SearchValues {
     /** Parse and map a query search into a QueryValues bag */
-    export function parse(query: string): QueryValues {
-        const result: QueryValues = {};
+    export function parse(query: string): SearchValues {
+        const result: SearchValues = {};
 
         const search = new URLSearchParams(query);
         for (const [key, value] of search) {
@@ -35,9 +35,9 @@ export namespace QueryValues {
     }
 }
 
-export namespace ParamValues {
+export namespace UrlValues {
     /** Create a new ParamValues by merging RouteValues and QueryValues */
-    export function create(values: RouteValues, query: QueryValues): QueryValues {
+    export function create(values: RouteValues, query: SearchValues): SearchValues {
         return Object.assign({}, values, query);
     }
 }
@@ -45,7 +45,7 @@ export namespace ParamValues {
 /** Represents all values extracted from the url */
 export type RouteData = {
     readonly values: RouteValues;
-    readonly query: QueryValues;
+    readonly query: SearchValues;
 }
 
 export type RoutingInvocationContext = {

@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
 import { IContainerRouteData } from "../src/routing/icontainer-route-data";
 import { Query } from "@aster-js/iterators";
+import { IRouteData } from "../src/routing/iroute-data";
 
 describe("DefaultRouter", () => {
 
@@ -74,7 +75,7 @@ describe("DefaultRouter", () => {
 
         class ViewConfigurationHandler implements IAppConfigureHandler {
 
-            constructor(@IContainerRouteData private readonly _routeData: IContainerRouteData) { }
+            constructor(@IContainerRouteData private readonly _routeData: IRouteData) { }
 
             [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
                 assert.equal(this._routeData.values["view"], "vertebrate");
