@@ -5,6 +5,8 @@ import { AppConfigureType, configure, IAppConfigureHandler, IApplicationPart, IA
 import { Memoize } from "@aster-js/decorators";
 import { ApplicationPartLifecycleHook, ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
 import { ApplicationPartLifecycleWrapper } from "./application-part-lifecycle-wrapper";
+import { ContainerRouteData, DefaultRouter, PartRouteData } from "../routing";
+import { DefaultNavigationService } from "../navigation/navigation-service";
 
 export abstract class ApplicationPart extends DisposableHost implements IApplicationPart {
     private readonly _module: IIoCModule;
@@ -41,7 +43,11 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     }
 
     private configureMandatoryAppPartServices(services: ServiceCollection): void {
-        services.addInstance(IApplicationPart, this, { scope: ServiceScope.container });
+        services.addInstance(IApplicationPart, this, { scope: ServiceScope.container })
+                .addScoped(PartRouteData, { scope: ServiceScope.container })
+                .addScoped(ContainerRouteData, { scope: ServiceScope.container })
+                .addScoped(DefaultNavigationService, { scope: ServiceScope.container })
+                .addScoped(DefaultRouter, { scope: ServiceScope.container });
 
         for (const desc of this.extractImplicitLifecycleImpl(services)) {
             services.addTransient(ApplicationPartLifecycleWrapper, { baseArgs: [desc], scope: ServiceScope.container });

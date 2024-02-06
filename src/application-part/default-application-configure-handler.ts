@@ -13,11 +13,7 @@ export class DefaultApplicationConfigureHandler implements IAppConfigureHandler 
             x.addInstance(RoutingOptions, defaultRoutingOptions)
                 .addSingleton(DefaultNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HistoryNavigationHandler, { scope: ServiceScope.container })
-                .addSingleton(HyperlinkNavigationHandler, { scope: ServiceScope.container })
-                .addScoped(PartRouteData)
-                .addScoped(ContainerRouteData)
-                .addScoped(DefaultNavigationService)
-                .addScoped(DefaultRouter);
+                .addSingleton(HyperlinkNavigationHandler, { scope: ServiceScope.container });
         });
     }
 }
