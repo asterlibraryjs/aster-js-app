@@ -1,6 +1,6 @@
 import { asserts, Constructor } from "@aster-js/core";
 import { resolveServiceId } from "@aster-js/ioc";
-import { ParamValues, RouteData } from "../routing";
+import { RouteData, UrlValues } from "../routing";
 import { ControllerRoutingHandler } from "./controller-routing-handler";
 import { ControllerRoutingCallbackArgsTag, ControllerRoutingHandlerTag } from "./controller-routing-handler-tag";
 
@@ -26,7 +26,7 @@ export const RoutePath = (path: string) => {
 /** Decorate parameters of controller route calls to inject any values from the route
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire RouteValues bag
  */
- export const RouteValue = (name?: string) => {
+ export const FromRoute = (name?: string) => {
     return <ParameterDecorator>function (target: Object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
@@ -39,7 +39,7 @@ export const RoutePath = (path: string) => {
 /** Decorate parameters of controller route calls to inject any values from the query
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire QueryValues bag
  */
-export const Query = (name?: string) => {
+export const FromSearch = (name?: string) => {
     return <ParameterDecorator>function (target: Object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
@@ -53,12 +53,12 @@ export const Query = (name?: string) => {
  * Decorate parameters of controller route calls to inject any values from the route or the query
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire ParamValues bag
  */
-export const Param = (name?: string) => {
+export const FromUrl = (name?: string) => {
     return <ParameterDecorator>function (target: Object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
         const accessor = ({ values, query }: RouteData) => {
-            if (!name) return ParamValues.create(values, query);
+            if (!name) return UrlValues.create(values, query);
 
             if (Reflect.has(query, name)) return query[name];
 

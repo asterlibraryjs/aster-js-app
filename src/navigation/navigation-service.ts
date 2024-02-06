@@ -35,7 +35,7 @@ export class DefaultNavigationService implements INavigationService {
         if (isRelative) {
             const all = AllParentServices(IContainerRouteData, this._application, false);
             const path = RoutingConstants.SEGMENT_SEPARATOR + Query(all)
-                .map(x => x.getUrlSegment())
+                .map(x => x.path)
                 .toArray()
                 .join(RoutingConstants.SEGMENT_SEPARATOR)
                 + RoutingConstants.SEGMENT_SEPARATOR;

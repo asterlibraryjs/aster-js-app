@@ -4,7 +4,7 @@ import { RouteValues } from "./routing-invocation-context";
 
 export interface IRouteSegment {
     match(segment: string | undefined): boolean;
-    read(ctx: RouteResolutionContext, values: RouteValues): void;
+    read(ctx: RouteResolutionContext, values: RouteValues): string | null;
     resolve(values: RouteValues, consume?: boolean): string | null;
 }
 
@@ -28,8 +28,9 @@ export class StaticRouteSegment implements IRouteSegment {
         return segment === this._segment;
     }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): void {
+    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
         shiftOrThrow(ctx, this._segment);
+        return this._segment;
     }
 
     resolve(values: RouteValues, consume?: boolean): string | null {
@@ -44,8 +45,9 @@ export class WildcardRouteSegment implements IRouteSegment {
 
     match(segment: string | undefined): boolean { return true; }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): void {
+    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
         shiftOrThrow(ctx, RoutingConstants.WILDCARD_CHAR);
+        return null;
     }
 
     resolve(values: RouteValues, consume?: boolean): string | null {
@@ -60,8 +62,9 @@ export class RelativeRouteSegment implements IRouteSegment {
 
     match(segment: string | undefined): boolean { return true; }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): void {
+    read(ctx: RouteResolutionContext, values: RouteValues): string | null{
         shiftOrThrow(ctx, RoutingConstants.RELATIVE_CHAR);
+        return null;
     }
 
     resolve(values: RouteValues, consume?: boolean): string | null {
@@ -90,9 +93,10 @@ export class StringRouteSegment implements IRouteSegment {
         return true;
     }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): void {
+    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
         const value = ctx.shift() || this._defaultValue;
         if (value) this.loadValue(this._name, value, values);
+        return value;
     }
 
     protected loadValue(name: string, value: string, values: RouteValues): void {

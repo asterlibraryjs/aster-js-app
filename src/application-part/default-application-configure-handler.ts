@@ -5,6 +5,7 @@ import { HyperlinkNavigationHandler, DefaultRouter, DefaultNavigationHandler, Hi
 import { ContainerRouteData } from "../routing/icontainer-route-data";
 import { RoutingOptions, defaultRoutingOptions } from "../routing/routing-options";
 import { DefaultNavigationService } from "../navigation/navigation-service";
+import { PartRouteData } from "../routing/ipart-route-data";
 
 export class DefaultApplicationConfigureHandler implements IAppConfigureHandler {
     [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
@@ -13,6 +14,7 @@ export class DefaultApplicationConfigureHandler implements IAppConfigureHandler 
                 .addSingleton(DefaultNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HistoryNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HyperlinkNavigationHandler, { scope: ServiceScope.container })
+                .addScoped(PartRouteData)
                 .addScoped(ContainerRouteData)
                 .addScoped(DefaultNavigationService)
                 .addScoped(DefaultRouter);

@@ -1,13 +1,17 @@
 import { ServiceIdentifier } from "@aster-js/ioc";
-import { QueryValues, RouteValues } from "./routing-invocation-context";
+import { IEvent } from "@aster-js/events";
+import { SearchValues, RouteValues } from "./routing-invocation-context";
 import { RouteResolutionContext } from "./route-resolution-context";
 import { IRoutingHandler } from "./irouting-handler";
+import { Route } from "./route";
 
 /**
  * Service Id and implementation for the service in charge of handling the application routing
  */
 export const IRouter = ServiceIdentifier<IRouter>("IRouter");
 export interface IRouter {
+
+    readonly onDidEvaluate: IEvent<[string, Route, RouteValues, SearchValues]>;
     /**
      * Gets all routing handlers for current scope
      */
@@ -29,5 +33,5 @@ export interface IRouter {
      * @param values Route values inherited
      * @param query Query values
      */
-    handle(ctx: RouteResolutionContext, values: RouteValues, query: QueryValues): Promise<boolean>;
+    handle(ctx: RouteResolutionContext, values: RouteValues, query: SearchValues): Promise<boolean>;
 }

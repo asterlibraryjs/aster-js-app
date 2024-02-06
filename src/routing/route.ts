@@ -45,12 +45,14 @@ export class Route implements Iterable<IRouteSegment>{
         return true;
     }
 
-    getRouteValues(ctx: RouteResolutionContext): RouteValues {
+    getRouteValues(ctx: RouteResolutionContext): [path: string, values: RouteValues] {
         const values: RouteValues = {};
+        const path: string[] = [];
         for (let i = 0; i < this._segments.length; i++) {
-            this._segments[i].read(ctx, values);
+            const consumedPath = this._segments[i].read(ctx, values);
+            if (consumedPath) path.push(consumedPath);
         }
-        return values;
+        return [path.join(RoutingConstants.SEGMENT_SEPARATOR), values];
     }
 
     resolve(values: RouteValues, consume?: boolean): string {
