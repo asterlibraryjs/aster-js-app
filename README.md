@@ -43,12 +43,15 @@ await.start();
 
 #### Routing options
 
-- Static segments: Segments that never change. A perfect match is expected, ex: `/static-segment` // "static-segment" is the static segment
-- Route value segments: Start with `:` and the name of the route value, ex: `/:nameOfTheRouteValue` // "nameOfTheRouteValue" is the route value name
-    - Use `?` to make this segment optional, ex: `/:nameOfTheRouteValue?`
-    - Add a default value after the `?` optional segments, ex: `/:nameOfTheRouteValue?12` // "12" is the default value
-    - Prefix the variable name with `+` to parse the value as a number, ex: `/:+nameOfTheRouteValue?12` // +12 is the default value and segment has to be valid number to match
-    - Allow string enums this syntax `:value<value1|value2|value3>` where `value1`, `value1` and `value1` are the only allowed values for the route value named `value`
+- Static segments: Segments that never change. A perfect match is expected, ex: `"/static-segment"` // "static-segment" is the static segment
+- Route value segments: Start with `:` and the name of the route value, ex: `"/:nameOfTheRouteValue"` // "nameOfTheRouteValue" is the route value name
+    - Use regex to validate content like `"/name<^\w$>"`. The regex **must** be surrounded by `^` at start and `$` at the end forcing the validation of the entire string
+    - Use `?` to make this segment optional, ex: `"/:nameOfTheRouteValue?"`
+    - Add a default value after the `?` optional segments, ex: `"/:nameOfTheRouteValue?12"` // `"12"` is the default value
+    - Prefix the variable name with `+` to parse the value as a number, ex: `"/:+nameOfTheRouteValue?12"` // `+12` is the default value and segment has to be valid number to match
+    - Prefix the variable name with `!` to parse the value as a boolean, ex: `"/:!option?true"` // `true` is the default value and segment has to be valid number to match
+    - Allow string enums this syntax `":value<value1|value2|value3>"` where `"value1"`, `"value1"` and `"value1"` are the only allowed values for the route value named `value`
+    - Customise boolean values by providing `<true|false>` as argument like `":!option<ok|no>"` where `"ok"` is `true` and `"no"` is `false`
 
 Then, its easy to create optional static segments using a dynamic enum like this:
 ```ts

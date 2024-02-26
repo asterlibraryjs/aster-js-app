@@ -15,7 +15,7 @@ export interface IRouter {
     /**
      * Gets all routing handlers for current scope
      */
-    getHandlers(): Iterable<IRoutingHandler>;
+    getHandlers(): Iterable<[Route, IRoutingHandler]>;
     /**
      * Gets all child router extracted from application part children
      * @param nested Indicate whether or not it should return nested children or only direct children

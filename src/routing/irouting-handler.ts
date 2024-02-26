@@ -12,8 +12,6 @@ export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>("IRoutingHandl
 export interface IRoutingHandler {
     /** Gets the string path used to describe the route */
     readonly path: string;
-    /** Route to match with. This route will also extract data from the url */
-    readonly route: Route;
     /**
      * Method called when the  route match
      * @param data Route data that contains route values and query values

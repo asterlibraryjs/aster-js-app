@@ -8,22 +8,26 @@ import { SearchValues, RouteValues } from "./routing-invocation-context";
 import { RoutingConstants } from "./routing-constants";
 import { EventEmitter, IEvent } from "@aster-js/events";
 import { Route } from "./route";
+import { IRouteParser } from "./iroute-parser";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
     private readonly _onDidEvaluate: EventEmitter<[string, Route, RouteValues, SearchValues]> = new EventEmitter();
+    private readonly _handlers: [Route, IRoutingHandler][]
     private _lastUrlEvaluated?: URL;
 
-    get onDidEvaluate():IEvent<[string, Route, RouteValues, SearchValues]> { return this._onDidEvaluate.event; }
+    get onDidEvaluate(): IEvent<[string, Route, RouteValues, SearchValues]> { return this._onDidEvaluate.event; }
 
     constructor(
-        @Many(IRoutingHandler) private readonly _handlers: IRoutingHandler[],
+        @IRouteParser parser: IRouteParser,
+        @Many(IRoutingHandler) handlers: IRoutingHandler[],
         @IApplicationPart private readonly _application: IApplicationPart,
         @ILogger private readonly _logger: ILogger
     ) {
+        this._handlers = handlers.map(x => [new Route(parser.parse(x.path)), x] as const);
     }
 
-    *getHandlers(): Iterable<IRoutingHandler> {
+    *getHandlers(): Iterable<[Route, IRoutingHandler]> {
         yield* this._handlers;
     }
 
@@ -44,7 +48,7 @@ export class DefaultRouter implements IRouter {
 
         const isRelative = url.startsWith(RoutingConstants.RELATIVE_CHAR);
         if (isRelative) {
-            const finalUrl = new URL(url.substring(1), location.origin)
+            const finalUrl = new URL(url.substring(1), location.origin);
             path = finalUrl.pathname;
             query = SearchValues.parse(finalUrl.search);
         }
@@ -63,12 +67,7 @@ export class DefaultRouter implements IRouter {
             query = SearchValues.parse(finalUrl.search);
         }
 
-        if (path.startsWith(RoutingConstants.SEGMENT_SEPARATOR)) path = path.substring(1);
-        if (path.endsWith(RoutingConstants.SEGMENT_SEPARATOR)) path = path.substring(0, path.length - 1);
-
-        const segments = path ? path.split(RoutingConstants.SEGMENT_SEPARATOR) : [];
-        const ctx = new RouteResolutionContext(this, segments, isRelative);
-
+        const ctx = RouteResolutionContext.parse(path, isRelative);
         return this.handle(ctx, defaults, query);
     }
 
@@ -76,38 +75,41 @@ export class DefaultRouter implements IRouter {
         const handler = await this.resolveHandler(ctx);
 
         if (!handler) {
-            const handlerPaths = this._handlers.map(x => x.path);
+            const handlerPaths = this._handlers.map(x => x[1].path);
             this._logger.warn(null, `No match found for the remaining route path: {relativeUrl}`, ctx.toString(), ...handlerPaths);
             return false;
         }
 
-        await this.invokeHandler(handler, ctx, values, query);
+        await this.invokeHandler(...handler, ctx, values, query);
         return true;
     }
 
-    private async resolveHandler(ctx: RouteResolutionContext): Promise<IRoutingHandler | undefined> {
+    /**
+     * Returns a handler that matches the current route
+     * @param ctx The route resolution context
+     */
+    private async resolveHandler(ctx: RouteResolutionContext): Promise<[Route, IRoutingHandler]| undefined> {
         if (!ctx.relative) {
             const children = this.getActiveChildren(true);
             return Query(children)
                 .prepend(this)
                 .flatMap(x => x.getHandlers())
-                .filter(x => !x.route.relative)
-                .findFirst(x => x.route.match(ctx));
+                .findFirst(([route]) => !route.relative && route.match(ctx));
         }
         return Query(this.getHandlers())
-            .findFirst(x => x.route.match(ctx));
+            .findFirst(([route]) => route.match(ctx));
     }
 
-    private async invokeHandler(handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: SearchValues): Promise<void> {
+    private async invokeHandler(route: Route, handler: IRoutingHandler, ctx: RouteResolutionContext, values: RouteValues, query: SearchValues): Promise<void> {
         const relativeUrl = ctx.toString();
-        const [path, localValues] = handler.route.getRouteValues(ctx);
+        const [path, localValues] = route.getRouteValues(ctx);
         const mergedValues = Object.assign({}, values, localValues);
 
         const routeData = { values: mergedValues, query };
 
         this._logger.info(`Routing match url "{relativeUrl}" with route "{routePath}"`, relativeUrl, handler.path, routeData);
         try {
-            this._onDidEvaluate.emit(path, handler.route, mergedValues, query);
+            this._onDidEvaluate.emit(path, route, mergedValues, query);
             await handler.handle(routeData, this._application);
         }
         catch (err) {

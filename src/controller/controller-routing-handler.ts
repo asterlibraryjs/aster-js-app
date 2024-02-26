@@ -9,17 +9,12 @@ import type { IRoutingResult } from "./irouting-result";
  * Routing handler used by controllers
  */
 export class ControllerRoutingHandler implements IRoutingHandler {
-
-    readonly route: Route;
-
     constructor(
         readonly path: string,
         private readonly _methodName: string,
         private readonly _target: ServiceIdentifier,
         private readonly _callback: Func<any[], Promise<IRoutingResult> | IRoutingResult>
-    ) {
-        this.route = Route.parse(path);
-    }
+    ) {    }
 
     async handle(data: RouteData, app: IApplicationPart): Promise<void> {
         const controller = app.services.get(this._target, true);

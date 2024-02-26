@@ -1,16 +1,17 @@
 import { ServiceScope } from "@aster-js/ioc";
 import { IApplicationPartBuilder, IApplicationPart } from "../abstraction";
 import { configure, IAppConfigureHandler } from "../abstraction/iapp-configure-handler";
-import { HyperlinkNavigationHandler, DefaultRouter, DefaultNavigationHandler, HistoryNavigationHandler } from "../routing";
-import { ContainerRouteData } from "../routing/icontainer-route-data";
+import { HyperlinkNavigationHandler, DefaultNavigationHandler, HistoryNavigationHandler, DefaultRouteParser } from "../routing";
 import { RoutingOptions, defaultRoutingOptions } from "../routing/routing-options";
-import { DefaultNavigationService } from "../navigation/navigation-service";
-import { PartRouteData } from "../routing/ipart-route-data";
-
+import { DefaultUrlValueValidatorFactory } from "../routing/url-value-validator/default-url-value-validator-factory";
+import { DefaultUrlValueConverterFactory } from "../routing/url-value-converter/default-url-value-converter-factory";
 export class DefaultApplicationConfigureHandler implements IAppConfigureHandler {
     [configure](builder: IApplicationPartBuilder, host?: IApplicationPart | undefined): void {
         builder.configure(x => {
             x.addInstance(RoutingOptions, defaultRoutingOptions)
+            .addSingleton(DefaultUrlValueConverterFactory)
+            .addSingleton(DefaultUrlValueValidatorFactory)
+                .addSingleton(DefaultRouteParser)
                 .addSingleton(DefaultNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HistoryNavigationHandler, { scope: ServiceScope.container })
                 .addSingleton(HyperlinkNavigationHandler, { scope: ServiceScope.container });

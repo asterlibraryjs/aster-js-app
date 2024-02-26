@@ -1,7 +1,6 @@
-import { IRouter } from "./irouter";
+import { Path } from "./path";
 
 export class RouteResolutionContext implements Iterable<string>{
-    private readonly _segments: string[];
     private readonly _initialSize: number;
 
     get remaining(): number { return this._segments.length; }
@@ -10,12 +9,10 @@ export class RouteResolutionContext implements Iterable<string>{
 
     get relative(): boolean { return this._relative; }
 
-    constructor(
-        readonly initiator: IRouter | null,
-        segments: Iterable<string>,
+    private constructor(
+        private readonly _segments: string[],
         private _relative: boolean
     ) {
-        this._segments = [...segments].map(decodeURIComponent);
         this._initialSize = this._segments.length;
     }
 
@@ -29,6 +26,8 @@ export class RouteResolutionContext implements Iterable<string>{
 
     shift(): string | undefined {
         this._relative = true;
+
+        if(this._segments.length === 0) return;
         return this._segments.shift();
     }
 
@@ -37,6 +36,15 @@ export class RouteResolutionContext implements Iterable<string>{
     }
 
     toString(): string {
-        return "/" + this._segments.join("/");
+        return Path.join(this._segments);
+    }
+
+    static parse(path: string, relative: boolean): RouteResolutionContext {
+        const segments = path ? Path.split(path) : [];
+        return new RouteResolutionContext(segments, relative);
+    }
+
+    static create(segments:Iterable<string>, relative: boolean): RouteResolutionContext {
+        return new RouteResolutionContext([...segments], relative);
     }
 }
