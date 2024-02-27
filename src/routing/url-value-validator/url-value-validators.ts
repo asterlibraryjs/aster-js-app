@@ -10,8 +10,8 @@ export class UrlRangeValidator implements IUrlValueValidator {
         this._max = parseFloat(max);
     }
     validate(value: string): boolean {
-        const number = parseFloat(value);
-        return number >= this._min && number <= this._max;
+        const num = parseFloat(value);
+        return num >= this._min && num <= this._max;
     }
 }
 

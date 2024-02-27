@@ -10,7 +10,3 @@ export interface IUrlValueValidatorFactory {
 export interface IUrlValueValidator {
     validate(value: string): boolean;
 }
-
-export namespace IUrlValueValidator {
-
-}

@@ -27,7 +27,7 @@ export namespace AnySegmentArguments {
         if(!expression || expression === EMPTY_EXPRESSION) return ["none"];
 
         if (!expression.startsWith(OPEN_CHAR) || !expression.endsWith(CLOSE_CHAR)) {
-            throw new Error("Invalid route format: Segment arguments must be surrounded with '<value>'.");
+            throw new Error("Invalid route format: Segment arguments must be surrounded with '<args>'.");
         }
 
         const argsExpression = expression.substring(1, expression.length - 1);

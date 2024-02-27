@@ -2,10 +2,9 @@ import { IRouteParser } from "./iroute-parser";
 import { IRouteSegment } from "./iroute-segment";
 import { Path } from "./path";
 import { WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment } from "./route-segments";
-import { IUrlValueConverter, IUrlValueConverterFactory } from "./url-value-converter";
-import { RouteValueValidator, ValueRouteSegment } from "./route-segments/value-route-segment";
+import { IUrlValueConverterFactory } from "./url-value-converter";
+import { ValueRouteSegment } from "./route-segments/value-route-segment";
 import { ServiceContract } from "@aster-js/ioc";
-import { Query } from "@aster-js/iterators";
 import { RouteValue } from "./routing-invocation-context";
 import { asserts } from "@aster-js/core";
 import { AnySegmentArguments, SegmentArguments } from "./segment-arguments";
@@ -68,30 +67,39 @@ export class DefaultRouteParser implements IRouteParser {
      * - /:name<^[\w]$>?111/
      */
     parseDynamicSegment(segment: string): IRouteSegment {
-        const chars = [...segment];
-        const q = Query([...segment]);
-
-        let nameExpression = [...q.takeWhile(x => x !== NULLABLE_CHAR && x !== AnySegmentArguments.OPEN_CHAR)].join("");
-
-        let nullableIdx = chars.lastIndexOf(NULLABLE_CHAR);
-        const argsEnd = chars.lastIndexOf(AnySegmentArguments.CLOSE_CHAR);
-        if(argsEnd !== -1 && argsEnd > nullableIdx) {
-            nullableIdx = -1;
-        }
-        let defaultExpression = nullableIdx !== -1 ? [...q.skipWhile((_, idx) => idx < nullableIdx)].join("") : "";
+        let argsExpression = "";
+        let defaultExpression = "";
 
         let optional = false;
         let defaultValue: RouteValue | null = null;
 
-        const argsExpression = segment.substring(nameExpression.length, nullableIdx !== -1 ? nullableIdx : segment.length);
+        const argsIdx = segment.indexOf(AnySegmentArguments.OPEN_CHAR);
+        let nullableIdx = segment.lastIndexOf(NULLABLE_CHAR);
+
+        const nameEndIdx = argsIdx !== -1 ? argsIdx : nullableIdx !== -1 ? nullableIdx : -1;
+        let name = nameEndIdx === -1 ? segment : segment.substring(0, nameEndIdx);
+
+        const argsEndIdx = segment.lastIndexOf(AnySegmentArguments.CLOSE_CHAR);
+        if (argsIdx !== -1) {
+            if (argsEndIdx === -1) throw new Error("Invalid route format: Segment arguments must be surrounded with '<args>', closing one missing.");
+            argsExpression = segment.substring(argsIdx, argsEndIdx + 1);
+        }
+        else if (argsEndIdx !== -1) {
+            throw new Error("Invalid route format: Segment arguments must be surrounded with '<args>', opening one missing.");
+        }
+
+        if (nullableIdx !== -1 && nullableIdx > argsEndIdx) {
+            defaultExpression = segment.slice(nullableIdx);
+        }
+
         const args = AnySegmentArguments.parse(argsExpression);
         const validator = this._validatorFactory.create(args);
 
         // Resolve converter and remove type indicator
-        const indicator = nameExpression.charAt(0);
+        const indicator = name.charAt(0);
         let converter = this._converterFactory.create(indicator, args);
         if (converter !== null) {
-            nameExpression = nameExpression.substring(1);
+            name = name.substring(1);
         }
         else {
             converter = this._converterFactory.getDefaultConverter();
@@ -105,6 +113,6 @@ export class DefaultRouteParser implements IRouteParser {
             }
         }
 
-        return new ValueRouteSegment(nameExpression, optional, defaultValue, converter, validator);
+        return new ValueRouteSegment(name, optional, defaultValue, converter, validator);
     }
 }
