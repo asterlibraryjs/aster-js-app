@@ -52,6 +52,7 @@ await.start();
     - Prefix the variable name with `!` to parse the value as a boolean, ex: `"/:!option?true"` // `true` is the default value and segment has to be valid number to match
     - Allow string enums this syntax `":value<value1|value2|value3>"` where `"value1"`, `"value1"` and `"value1"` are the only allowed values for the route value named `value`
     - Customise boolean values by providing `<true|false>` as argument like `":!option<ok|no>"` where `"ok"` is `true` and `"no"` is `false`
+    - Restrict the range of number using range arguments like this `":!percent<0..100>"`
 
 Then, its easy to create optional static segments using a dynamic enum like this:
 ```ts
