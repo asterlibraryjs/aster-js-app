@@ -1,7 +1,7 @@
 import { Func } from "@aster-js/core"
 import { ServiceIdentifier } from "@aster-js/ioc";
 import { IApplicationPart } from "../abstraction";
-import { IRoutingHandler, Route, RouteData } from "../routing";
+import { IRoutingHandler, RouteData } from "../routing";
 import { ControllerRoutingCallbackArgsTag } from "./controller-routing-handler-tag";
 import type { IRoutingResult } from "./irouting-result";
 

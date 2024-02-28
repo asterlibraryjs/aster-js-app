@@ -8,13 +8,18 @@ npm install --save @aster-js/app
 
 This library has the goal of helping organizing your application services and lifecycles by creating a hierarchy of `ApplicationPart` drived by `routes`.
 
-![Alt text](./doc/application-part-routing.svg)
+![Application Part Schema](./doc/application-part-routing.svg)
 
 ## Gets started
 
 To create a basic application, you need to create a new `SinglePageApplication`.
 
+- A `SinglePageApplication` is a built to handle navigations in a dependency injection context.
+
+- A `SinglePageApplication` is also an `IoCContainer` configurable and extensible. See [`@aster-js/ioc`](https://github.com/asterlibraryjs/aster-js-ioc)
+
 ### The shortest way
+The static `start` method will create an app, configure it through the provided callback or `IAppConfigureHandler`, build it and start it.
 ```ts
 const app = await SinglePageApplication.start("Library", (builder) => {
     builder.configure(services => services.addSingleton(MyService))
@@ -22,6 +27,7 @@ const app = await SinglePageApplication.start("Library", (builder) => {
 ```
 
 ### The more detailled way
+The way will allow the code to create the application synchronously allowing synchronous references to the app then start it.
 ```ts
 const builder = SinglePageApplication.create("Library");
 
@@ -30,12 +36,41 @@ builder.configure(services => services.addSingleton(MyService));
 const app =  builder.build();
 await.start();
 ```
+> For example, some component based scenarios may require this way to build and start an app. The application may be required then to be exported built from its module and referenced in all components. Then each component can use the `ready` promise to await its loading and render a custom loading UI.
+
+### Child ApplicationPart & IAppConfigureHandler
+
+Even if using a callback to configure a dependency injection container can be a good solution, using an `IAppConfigureHandler` can relocate the code that configure a part of your application more contextual.
+
+```ts
+// File: /src/modules/client/configure-client-module.ts
+class ConfigureClientModule implements IAppConfigureHandler {
+    [configure](builder: IApplicationPartBuilder, host?: IApplicationPart): void {
+        // Configure services
+    }
+}
+
+// File: /src/main.ts
+await SinglePageApplication.start("StoreApp", x => x.addPart("/:part", ConfigureClientModule);
+```
 
 ### Declaring your first route handler
+Route handlers are simplified and their is many way to register them. One way is to register an action that will be executed when the route match
 ```ts
 const builder = SinglePageApplication.create("Library");
 
-builder.addAction("/my-action", _ => console.warn("Action called"));
+builder.addAction("/:action", ctx => console.warn(`Action ${ctx.data.values["action"]} called`));
+
+const app =  builder.build();
+await.start();
+```
+
+You can also call a service method...
+
+```ts
+const builder = SinglePageApplication.create("Library");
+
+builder.addAction("/:view", IRenderService, (svc, data) => svc.render(data.values["view"]));
 
 const app =  builder.build();
 await.start();
@@ -61,22 +96,67 @@ builder.addAction("/:page<index>", _ => console.warn("Action called"));
 
 To debug the routing, open the chrome console and watch the logger output of the routing:
 ```log
-[14:03:02.179] [root/CustomerApp] Routing match url "/" with route "/:page/*"
+[14:03:02.179] [root/CustomerApp] Routing match url "/" with route "/:page?/*"
 ```
 
 ### Declaring your first controller
-```ts
+Controller are a other way to handle routing. Controller use routing result to avoid including rendering code in it.
 
-export class CustomViewController() {
-    @RoutePath("/")
-    getAll()
+First thing first, you need to declare you result that will reflect the states. In this case, we are going to use Svelte to render our views.
+
+```ts
+// File: ./src/shared/svelte-view-result.ts
+export class SvelteViewResult implements IRoutingResult {
+    constructor(
+        private readonly _component: Constructor,
+        private readonly _args: any
+    ){ }
+
+    exec(app: IApplicationPart): Promise<void> {
+        const root = document.getElementById("#root");
+        new this._component(root, args);
+        return Promise.resolve();
+    }
 }
 
+// File: ./controllers/customer-view-controller.ts
 
-const builder = SinglePageApplication.create("Library");
+import { RoutePath, FromSearch, FromRoute } from "@aster-js/app";
+import { SvelteViewResult } from "./svelte-view-result";
+import CustomerList from "./views/customer-list.svelte";
+import CustomerDetail from "./views/customer-detail.svelte";
 
-builder.addController("/my-action", _ => console.warn("Action called"));
+export class CustomerViewController {
 
-const app =  builder.build();
-await.start();
+    constructor(@ICustomerViewService private readonly )
+
+    @RoutePath("/customers")
+    viewAll(@FromSearch("page") page?: string): IRoutingResult {
+        return new SvelteViewResult(CustomerList, { page: page ? +page : 1 })
+    }
+
+    @RoutePath("/customers/detail/:+id")
+    viewCustomer(@FromRoute("id") id: number | null) {
+        if(id === null) return
+        return new SvelteViewResult(CustomerDetail, { page: page ? +page : 1 })
+    }
+}
+
+// File: ./src$main
+await SinglePageApplication.start("Library", x => x.addController(CustomerViewController));
 ```
+
+### Controller decorators
+
+- `@RoutePath`: Bind a route to a controller method
+- `@FromRoute`: Inject parameter values from the route
+- `@FromSearch`: Inject parameter values from comming after the `?`
+- `@FromUrl`: Inject any parameter from either the route, either the search
+
+### Controller built-in results
+
+Even if most of real world scenarios will require to implements your custom `IRoutingResult`, these are the provided ones:
+- `htmlResult(html: string | HTMLElement, target: HTMLElement, mode?: HtmlInsertionMode)` Will replace of append raw html content into a div. **Warning**: This technic can lead to security risks, use it carefully and never use it with user custom inputs.
+- `openResult(url: string, target: string = "_blank", features: OpenWindowOptions = {})` will open a new window, can be usefull for many scenario the must open an url in a separated window.
+- `partResult(name: string, configure: Constructor<IAppConfigureHandler> | AppConfigureDelegate)` will load a child application part and activate it.
+- `aggregateResults(...results: IRoutingResult[])` will execute sequentially multiple results.

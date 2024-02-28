@@ -1,7 +1,7 @@
 import { Delayed } from "@aster-js/async";
 import { Constructor, asserts } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, IoCKernel, IoCModule, LogLevel, ServiceContract } from "@aster-js/ioc";
-import { AppConfigureDelegate, AppConfigureType, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
+import { IIoCContainerBuilder, IIoCModule, IoCKernel, LogLevel } from "@aster-js/ioc";
+import { AppConfigureDelegate, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { ApplicationPart } from "./application-part";
 import { ApplicationPartBuilder } from "./application-part-builder";
 import { ChildApplicationPartBuilder } from "./child-application-part";
@@ -59,7 +59,7 @@ export class SinglePageApplication extends ApplicationPart {
         return builder;
     }
 
-    static async start(appName: string, configHandler: AppConfigureType): Promise<SinglePageApplication> {
+    static async start(appName: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Promise<SinglePageApplication> {
         const handler = IAppConfigureHandler.resolve(configHandler);
         const app = SinglePageApplication.create(appName, DefaultApplicationConfigureHandler, handler).build();
         await app.start();
