@@ -189,54 +189,31 @@ describe("Route", () => {
         assert.isTrue(route.match(ctx));
     });
 
-    it("Should read a wildcarded route", () => {
-        const route = parse("/items/:item/field/*");
+    ([
+        { routePath: "~/:name<^bob[0-9]?$>/:!love<yeah|boo>", relative: true, wildcard: false, path: "/bob6/boo", values: { name: "bob6", love: false } },
+        { routePath: "~/:item?robots", relative: true, wildcard: false, path: "/", values: { item: "robots" } },
+        { routePath: "/items/:item/field/*", relative: false, wildcard: true, path: "items/robots/field/title/55", values: { item: "robots" } },
+        { routePath: "/items/:item/:field<name|title|id>", relative: false, wildcard: false, path: "items/robots/title", values: { item: "robots", field: "title" } },
+        { routePath: "/items/:item/:+field<22..33>", relative: false, wildcard: false, path: "items/robots/22", values: { item: "robots", field: 22 } },
+        { routePath: "/items/:item/:+field<22.5..33.3>", relative: false, wildcard: false, path: "items/robots/22.6", values: { item: "robots", field: 22.6 } },
+        { routePath: "/items/:item/", relative: false, wildcard: false, path: "/items/robot%20de%20l'espace", values: { item: "robot de l'espace" } }
+    ] as const)
+        .forEach(({ routePath, relative, wildcard, path, values }) => {
+            it(`Should match a route ${routePath}`, () => {
+                const route = parse(routePath);
 
-        assert.isTrue(route.wildcard, "Is wildcard");
-        assert.isFalse(route.relative, "Is relative");
+                assert.equal(route.relative, relative, "Is relative");
+                assert.equal(route.wildcard, wildcard, "Is wildcard");
 
-        const ctx = RouteResolutionContext.create(["items", "robots", "field", "title", "55"], false);
+                const ctx = RouteResolutionContext.parse(path, relative);
 
-        const match = route.match(ctx);
+                const isMatch = route.match(ctx);
 
-        assert.isTrue(match, "Is match");
+                assert.isTrue(isMatch, "Match route is true");
 
-        const [, values] = route.getRouteValues(ctx);
+                const [, routeValues] = route.getRouteValues(ctx);
 
-        assert.deepEqual({ item: "robots" }, values);
-    });
-
-    it("Should read a relative route", () => {
-        const route = parse("~/:item?robots");
-
-        assert.isFalse(route.wildcard, "Is wildcard");
-        assert.isTrue(route.relative, "Is relative");
-
-        const ctx = RouteResolutionContext.create([], true);
-
-        const match = route.match(ctx);
-
-        assert.isTrue(match, "Is match");
-
-        const [, values] = route.getRouteValues(ctx);
-
-        assert.deepEqual({ item: "robots" }, values);
-    });
-
-    it("Should read a relative route with boolean and regex", () => {
-        const route = parse("~/:name<^bob[0-9]?$>/:!love<yeah|boo>");
-
-        assert.isFalse(route.wildcard, "Is wildcard");
-        assert.isTrue(route.relative, "Is relative");
-
-        const ctx = RouteResolutionContext.create(["bob6", "boo"], true);
-
-        const match = route.match(ctx);
-
-        assert.isTrue(match, "Is match");
-
-        const [, values] = route.getRouteValues(ctx);
-
-        assert.deepEqual({ name:"bob6", love: false }, values);
-    });
+                assert.deepEqual(values, routeValues, `Values not equal \r${JSON.stringify(values)} !== ${JSON.stringify(routeValues)}`);
+            });
+        });
 });
