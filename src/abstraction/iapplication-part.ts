@@ -2,7 +2,7 @@ import { Constructor } from "@aster-js/core";
 import { IIoCModule, ServiceIdentifier } from "@aster-js/ioc";
 import { IAppConfigureHandler, AppConfigureDelegate } from "./iapp-configure-handler";
 
-export const IApplicationPart = ServiceIdentifier<IApplicationPart>("IApplicationPart");
+export const IApplicationPart = ServiceIdentifier<IApplicationPart>({ name: "@aster-js/app/IApplicationPart", unique: true });
 
 /** Represents a part of an application based on a IoC Container and using it a registry for all its services. */
 export interface IApplicationPart extends IIoCModule {

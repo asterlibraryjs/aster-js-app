@@ -10,7 +10,7 @@ import { IContainerRouteData } from "./icontainer-route-data";
  *
  * To get current route data (route data registered by current app route declarations), use IContainerRouteData service.
  */
-export const IPartRouteData = ServiceIdentifier<IRouteData>("IPartRouteData");
+export const IPartRouteData = ServiceIdentifier<IRouteData>({ name: "@aster-js/app/IPartRouteData", unique: true });
 
 @ServiceContract(IPartRouteData)
 export class PartRouteData implements IRouteData {

@@ -3,7 +3,7 @@ import { Route } from "./route";
 import { RouteData } from "./routing-invocation-context";
 import { IApplicationPart } from "../abstraction";
 
-export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>("IRoutingHandler");
+export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>({ name: "@aster-js/app/IRoutingHandler", unique: true });
 
 /**
  * Service ID and Implementation for routing handler.

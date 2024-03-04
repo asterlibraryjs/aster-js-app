@@ -8,7 +8,7 @@ import { Route } from "./route";
 /**
  * Service Id and implementation for the service in charge of handling the application routing
  */
-export const IRouter = ServiceIdentifier<IRouter>("IRouter");
+export const IRouter = ServiceIdentifier<IRouter>({ name: "@aster-js/app/IRouter", unique: true });
 export interface IRouter {
 
     readonly onDidEvaluate: IEvent<[string, Route, RouteValues, SearchValues]>;
