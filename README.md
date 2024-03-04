@@ -19,7 +19,9 @@ To create a basic application, you need to create a new `SinglePageApplication`.
 - A `SinglePageApplication` is also an `IoCContainer` configurable and extensible. See [`@aster-js/ioc`](https://github.com/asterlibraryjs/aster-js-ioc)
 
 ### The shortest way
+
 The static `start` method will create an app, configure it through the provided callback or `IAppConfigureHandler`, build it and start it.
+
 ```ts
 const app = await SinglePageApplication.start("Library", (builder) => {
     builder.configure(services => services.addSingleton(MyService))
@@ -27,7 +29,9 @@ const app = await SinglePageApplication.start("Library", (builder) => {
 ```
 
 ### The more detailled way
-The way will allow the code to create the application synchronously allowing synchronous references to the app then start it.
+
+This way will allow to create the application synchronously allowing synchronous references to the app then start it.
+
 ```ts
 const builder = SinglePageApplication.create("Library");
 
@@ -54,23 +58,86 @@ class ConfigureClientModule implements IAppConfigureHandler {
 await SinglePageApplication.start("StoreApp", x => x.addPart("/:part", ConfigureClientModule);
 ```
 
-### Declaring your first route handler
-Route handlers are simplified and their is many way to register them. One way is to register an action that will be executed when the route match
+### Using ApplicationPartLifecycleHooks
+
+Lifecycle hooks allow you to register automatically methods to execute on important application part lifecycle through the following symbols:
+
+- `ApplicationPartLifecycleHooks.setup`: The first time the module is instanciated.
+- `ApplicationPartLifecycleHooks.activated`: When a url match with a part route.
+- `ApplicationPartLifecycleHooks.deactivated`: When a route stop matching a part route.
+
+The following example declare a service in charge of loading the settings from a custom service and render them using an other one.
+```ts
+export class  DefaultSettingService {
+    private settings?: Setting[];
+
+    constructor(
+        // Container route data gives with url load current part
+        @IPartRouteData private readonly routeData: IRouteData,
+        // Custom services you have to declare and create
+        @IRenderingService private readonly renderer: IRenderingService,
+        @IDataService private readonly dataService: IDataService
+    ){}
+
+    async [ApplicationPartLifecycleHooks.setup](): Promise<void> {
+        const moduleName = this.routeData["module"];
+        this.settings = this.dataService.load(moduleName);
+    }
+    [ApplicationPartLifecycleHooks.activated](): Promise<void> {
+        return this.renderer.renderView("settings", { settings: this.settings });
+    }
+    [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {
+        return this.renderer.destroyView("settings");
+    }
+}
+```
+
+> `IPartRouteData` and `IContainerRouteData` are two way to get route data values in services. `Part` for the values that allow the part to load and `Container` for the values that match a route declared during the part loading.
+
+### Nesting parts
+
+The routing allow you to let the remaining part of the url to a child module, this way each module can decide of its own url strategy:
+```ts
+
+// File: /src/modules/settings/configure-client-module.ts
+class ConfigureSettingsModule implements IAppConfigureHandler {
+    [configure](builder: IApplicationPartBuilder, host?: IApplicationPart): void {
+        builder.configure(x => x.addSingleton(DefaultSettingService));
+    }
+}
+
+// File: /src/modules/client/configure-client-module.ts
+class ConfigureClientModule implements IAppConfigureHandler {
+    [configure](builder: IApplicationPartBuilder, host?: IApplicationPart): void {
+        x.addPart("~/:action<settings>", ConfigureClientModule) // Put "~/" at the start to match relative urls.
+    }
+}
+
+// File: /src/main.ts
+
+
+await SinglePageApplication.start("StoreApp", builder => {
+    builder.addPart("/:part/*", ConfigureClientModule); // Put "/*" at the end to match url that contains more unhandled parts.
+});
+```
+
+### Other way to handle navigation
+Route handlers are simplified and their is many way to register them. One way is to register an action that will register an `ActionRoutingHandler`:
 ```ts
 const builder = SinglePageApplication.create("Library");
 
 builder.addAction("/:action", ctx => console.warn(`Action ${ctx.data.values["action"]} called`));
 
 const app =  builder.build();
-await.start();
+await app.start();
 ```
 
-You can also call a service method...
+You can also call a service method registering a `ServiceRoutingHandler`:
 
 ```ts
 const builder = SinglePageApplication.create("Library");
 
-builder.addAction("/:view", IRenderService, (svc, data) => svc.render(data.values["view"]));
+builder.addAction("/:view?index", IRenderService, (svc, data) => svc.render(data.values["view"]));
 
 const app =  builder.build();
 await.start();
