@@ -56,17 +56,18 @@ export class DefaultRouteParser implements IRouteParser {
     }
 
     /**
-     * - /:name<one|two|three>?one/
-     * - /:!condition<true|false>?true/
-     * - /:!condition<yes|no>?yes/
-     * - /:+size<..50>?44/
-     * - /:+page<1..>?1/
-     * - /:+page<1..100>?1/
-     * - /:$name<111..22>/
-     * - /:name<111..22>?111/
-     * - /:name<^[\w]$>?111/
+     * Currently supported dynamic segment formats:
+     * - String Enum: /:name<one|two|three>?one/
+     * - Boolean:
+     *      - /:!condition<true|false>?true/
+     *      - /:!condition<yes|no>?yes/
+     * - Number with optional range:
+     *      - /:+size<..50>?44/
+     *      - /:+page<1..>?1/
+     *      - /:+page<1..100>?1/
+     * - Regex on any type: /:name<^[\w]$>?111/
      */
-    parseDynamicSegment(segment: string): IRouteSegment {
+    protected parseDynamicSegment(segment: string): IRouteSegment {
         let argsExpression = "";
         let defaultExpression = "";
 

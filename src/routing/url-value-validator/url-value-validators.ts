@@ -5,9 +5,11 @@ export class UrlRangeValidator implements IUrlValueValidator {
     private readonly _min: number;
     private readonly _max: number;
 
-    constructor([, min, max]: RangeArguments) {
-        this._min = parseFloat(min);
-        this._max = parseFloat(max);
+    constructor([, rawMin, rawMax]: RangeArguments) {
+        const min = parseFloat(rawMin);
+        const max = parseFloat(rawMax);
+        this._min = isNaN(min) ? Number.MIN_SAFE_INTEGER : min;
+        this._max = isNaN(max) ? Number.MAX_SAFE_INTEGER : max;
     }
     validate(value: string): boolean {
         const num = parseFloat(value);

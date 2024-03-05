@@ -14,7 +14,7 @@ export class ControllerRoutingHandler implements IRoutingHandler {
         private readonly _methodName: string,
         private readonly _target: ServiceIdentifier,
         private readonly _callback: Func<any[], Promise<IRoutingResult> | IRoutingResult>
-    ) {    }
+    ) { }
 
     async handle(data: RouteData, app: IApplicationPart): Promise<void> {
         const controller = app.services.get(this._target, true);
@@ -23,7 +23,13 @@ export class ControllerRoutingHandler implements IRoutingHandler {
         const argsDefinition = ControllerRoutingCallbackArgsTag.get(proto);
         const args = [...argsDefinition.get(this._methodName)].reverse().map(x => x.accessor(data));
 
-        const result = await this._callback.apply(controller, args);
-        await result.exec(app);
+        let result = this._callback.apply(controller, args);
+
+        if (result instanceof Promise) {
+            result = await result;
+        }
+        if (result) {
+            await result.exec(app);
+        }
     }
 }

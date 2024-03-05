@@ -195,6 +195,8 @@ describe("Route", () => {
         { routePath: "/items/:item/field/*", relative: false, wildcard: true, path: "items/robots/field/title/55", values: { item: "robots" } },
         { routePath: "/items/:item/:field<name|title|id>", relative: false, wildcard: false, path: "items/robots/title", values: { item: "robots", field: "title" } },
         { routePath: "/items/:item/:+field<22..33>", relative: false, wildcard: false, path: "items/robots/22", values: { item: "robots", field: 22 } },
+        { routePath: "/items/:item/:+field<22..>", relative: false, wildcard: false, path: "items/robots/5666684112", values: { item: "robots", field: 5666684112 } },
+        { routePath: "/items/:item/:+field<..33>", relative: false, wildcard: false, path: "items/robots/-555522", values: { item: "robots", field: -555522 } },
         { routePath: "/items/:item/:+field<22.5..33.3>", relative: false, wildcard: false, path: "items/robots/22.6", values: { item: "robots", field: 22.6 } },
         { routePath: "/items/:item/", relative: false, wildcard: false, path: "/items/robot%20de%20l'espace", values: { item: "robot de l'espace" } }
     ] as const)
