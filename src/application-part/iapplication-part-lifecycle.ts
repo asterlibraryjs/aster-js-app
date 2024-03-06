@@ -1,7 +1,7 @@
 import { Constructor } from "@aster-js/core";
 import { ServiceIdentifier } from "@aster-js/ioc";
 
-export const IApplicationPartLifecycle = ServiceIdentifier<IApplicationPartLifecycle>("IApplicationPartLifecycle");
+export const IApplicationPartLifecycle = ServiceIdentifier<IApplicationPartLifecycle>({ name: "@aster-js/app/IApplicationPartLifecycle", unique: true });
 
 export namespace ApplicationPartLifecycleHooks {
 

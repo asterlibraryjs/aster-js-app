@@ -8,17 +8,11 @@ export type ServiceRouterAction<T = any> = (service: T, data: RouteData) => Prom
 
 @ServiceContract(IRoutingHandler)
 export class ServiceRoutingHandler<T = any> implements IRoutingHandler {
-    private readonly _route: Route;
-
-    get path(): string { return this._path; }
-
-    get route(): Route { return this._route; }
-
-    constructor(private readonly _path: string,
+    constructor(
+        readonly path: string,
         private readonly _serviceId: ServiceIdentifier,
-        private readonly _action: ServiceRouterAction<T>) {
-        this._route = Route.parse(_path);
-    }
+        private readonly _action: ServiceRouterAction<T>
+    ) { }
 
     handle(data: RouteData, app: IApplicationPart): Promise<void> {
         const service = app.services.get(this._serviceId, true);

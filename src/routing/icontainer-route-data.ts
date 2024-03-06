@@ -10,7 +10,7 @@ import { ApplicationPartLifecycleHooks } from "../application-part";
  *
  * To get part route data (route data registered by part route declarations), use IPartRouteData service.
  */
-export const IContainerRouteData = ServiceIdentifier<IRouteData>("IContainerRouteData")
+export const IContainerRouteData = ServiceIdentifier<IRouteData>({ name: "@aster-js/app/IContainerRouteData", unique: true })
 
 @ServiceContract(IContainerRouteData)
 export class ContainerRouteData implements IRouteData {

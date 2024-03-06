@@ -25,8 +25,8 @@ describe("NavigationService", () => {
         const exepcted = new URL("/test", location.href).href;
 
         using app = await SinglePageApplication.start("test", builder => {
-            builder.addPart("/:part?home", x => {
-                x.addAction("/:view?", () => { });
+            builder.addPart("/:part?home/*", x => {
+                x.addAction("~/:view?", () => { });
             });
         });
 
@@ -44,8 +44,8 @@ describe("NavigationService", () => {
         const exepcted = new URL("/home/test", location.href).href;
 
         using app = await SinglePageApplication.start("test", builder => {
-            builder.addPart("/:part?home", x => {
-                x.addAction("/:view?", () => { callCount++; });
+            builder.addPart("/:part?home/*", x => {
+                x.addAction("~/:view?", () => { callCount++; });
             });
         });
 

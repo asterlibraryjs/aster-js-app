@@ -24,7 +24,9 @@ export interface IApplicationPartBuilder extends IIoCContainerBuilder {
     /**
      * Add a child application part accessible through the provided route path.
      * It will be possible to configure this child app through a builder and register custom services and custom setups
-     * @param path Route path
+     *
+     * **IMPORTANT: Use the "part" route value name to identify where the part name is retreived**
+     * @param path Route path that must declare at least 1 segment with `/:part/`
      * @param configHandler Configure handler type of callback
      */
     addPart(path: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): IApplicationPartBuilder;

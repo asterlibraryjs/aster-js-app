@@ -4,6 +4,7 @@ import { IRoutingHandler } from "../irouting-handler";
 import { RouteData } from "../routing-invocation-context";
 import { IAppConfigureHandler, IApplicationPart } from "../../abstraction";
 import { Constructor } from "@aster-js/core";
+import { IRouteParser } from "../iroute-parser";
 
 @ServiceContract(IRoutingHandler)
 export class PartLoaderRoutingHandler implements IRoutingHandler {
@@ -15,9 +16,12 @@ export class PartLoaderRoutingHandler implements IRoutingHandler {
 
     constructor(
         private readonly _path: string,
-        private readonly _configHandler: Constructor<IAppConfigureHandler>
+        private readonly _configHandler: Constructor<IAppConfigureHandler>,
+        @IRouteParser routeParser: IRouteParser
     ) {
-        this._route = Route.parse(_path);
+        this._route = new Route(
+            routeParser.parse(_path)
+        );
     }
 
     async handle(data: RouteData, app: IApplicationPart): Promise<void> {

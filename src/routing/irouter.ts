@@ -8,14 +8,14 @@ import { Route } from "./route";
 /**
  * Service Id and implementation for the service in charge of handling the application routing
  */
-export const IRouter = ServiceIdentifier<IRouter>("IRouter");
+export const IRouter = ServiceIdentifier<IRouter>({ name: "@aster-js/app/IRouter", unique: true });
 export interface IRouter {
 
     readonly onDidEvaluate: IEvent<[string, Route, RouteValues, SearchValues]>;
     /**
      * Gets all routing handlers for current scope
      */
-    getHandlers(): Iterable<IRoutingHandler>;
+    getHandlers(): Iterable<[Route, IRoutingHandler]>;
     /**
      * Gets all child router extracted from application part children
      * @param nested Indicate whether or not it should return nested children or only direct children

@@ -1,7 +1,8 @@
+import { Constructor } from "@aster-js/core";
 import { IIoCModule, ServiceIdentifier } from "@aster-js/ioc";
-import { AppConfigureType } from "./iapp-configure-handler";
+import { IAppConfigureHandler, AppConfigureDelegate } from "./iapp-configure-handler";
 
-export const IApplicationPart = ServiceIdentifier<IApplicationPart>("IApplicationPart");
+export const IApplicationPart = ServiceIdentifier<IApplicationPart>({ name: "@aster-js/app/IApplicationPart", unique: true });
 
 /** Represents a part of an application based on a IoC Container and using it a registry for all its services. */
 export interface IApplicationPart extends IIoCModule {
@@ -10,7 +11,7 @@ export interface IApplicationPart extends IIoCModule {
     /** Returns the child application part that use the provided name */
     getChild(name: string): IApplicationPart | undefined;
     /** Configure, Setup, Start and Activate a child application part */
-    load(name: string, handlerCtor: AppConfigureType): Promise<IApplicationPart>;
+    load(name: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Promise<IApplicationPart>;
     /** Make a part of the application `activated` to call proper hooks from IApplicationPartLifecycle */
     activate(name: string): Promise<void>;
 }

@@ -4,6 +4,7 @@ import { IApplicationPart } from "../abstraction";
 import { RoutingConstants } from "../routing/routing-constants";
 import { INavigationService } from "./inavigation-service";
 import { Query } from "@aster-js/iterators";
+import { Path } from "../routing/path";
 
 @ServiceContract(INavigationService)
 export class DefaultNavigationService implements INavigationService {
@@ -29,19 +30,15 @@ export class DefaultNavigationService implements INavigationService {
         await this._router.eval(relativeUrl);
     }
 
-    private getBaseAddress(isRelative: boolean): string {
+    private getBaseAddress(isRelative: boolean): URL {
         if (isRelative) {
             const all = AllParentServices(IContainerRouteData, this._application, false);
-            const path = RoutingConstants.SEGMENT_SEPARATOR + Query(all)
+            const segments = Query(all)
                 .map(x => x.path)
                 .toArray()
-                .reverse()
-                .join(RoutingConstants.SEGMENT_SEPARATOR)
-                + RoutingConstants.SEGMENT_SEPARATOR;
-
-            const url = new URL(path, location.origin);
-            return url.href;
+                .reverse();
+            return new URL(Path.join(segments), location.origin);
         }
-        return location.href;
+        return new URL(location.href);
     }
 }

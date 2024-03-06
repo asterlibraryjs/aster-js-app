@@ -1,8 +1,10 @@
-import { IApplicationPart } from "../abstraction";
-import { Route } from "./route";
+import type { IApplicationPart } from "../abstraction";
+import type { IRoutingHandler } from "./irouting-handler";
+
+export type RouteValue = string | number | boolean | Date;
 
 /** Values extracted from the url path by a matching route */
-export type RouteValues = Record<string, string | number>;
+export type RouteValues = Record<string, RouteValue>;
 
 /** Values extracted from the url search */
 export type SearchValues = Record<string, string | string[]>;
@@ -49,7 +51,7 @@ export type RouteData = {
 }
 
 export type RoutingInvocationContext = {
-    readonly route: Route;
+    readonly handler: IRoutingHandler;
     readonly data: RouteData;
     readonly app: IApplicationPart;
 }

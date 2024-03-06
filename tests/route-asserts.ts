@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { EnumRouteSegment, IRouteSegment, NumberRouteSegment, StaticRouteSegment, StringRouteSegment } from "../src";
+import { IRouteSegment, RouteValue, StaticRouteSegment, ValueRouteSegment } from "../src";
 
 
 export function assertStaticSegment(segment: IRouteSegment, expected: string): asserts segment is StaticRouteSegment {
@@ -9,28 +9,10 @@ export function assertStaticSegment(segment: IRouteSegment, expected: string): a
     assert.equal(expected, staticRoute.segment);
 }
 
-export function assertStringSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue: string | null = null): asserts segment is StringRouteSegment {
-    assert.instanceOf(segment, StringRouteSegment);
+export function assertValueSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue: RouteValue | null = null): asserts segment is ValueRouteSegment {
+    assert.instanceOf(segment, ValueRouteSegment);
 
-    const staticRoute = <StringRouteSegment>segment;
-    assert.equal(expectedName, staticRoute.name);
-    assert.equal(shouldBeOptional, staticRoute.optional);
-    assert.equal(expectedDefaultValue, staticRoute.defaultValue);
-}
-
-export function assertEnumSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue?: string): asserts segment is StringRouteSegment {
-    assert.instanceOf(segment, EnumRouteSegment);
-
-    const staticRoute = <EnumRouteSegment>segment;
-    assert.equal(expectedName, staticRoute.name);
-    assert.equal(shouldBeOptional, staticRoute.optional);
-    assert.equal(expectedDefaultValue, staticRoute.defaultValue);
-}
-
-export function assertNumberSegment(segment: IRouteSegment, expectedName: string, shouldBeOptional: boolean, expectedDefaultValue: string | null): asserts segment is NumberRouteSegment {
-    assert.instanceOf(segment, NumberRouteSegment);
-
-    const staticRoute = <NumberRouteSegment>segment;
+    const staticRoute = <ValueRouteSegment>segment;
     assert.equal(expectedName, staticRoute.name);
     assert.equal(shouldBeOptional, staticRoute.optional);
     assert.equal(expectedDefaultValue, staticRoute.defaultValue);
