@@ -6,7 +6,9 @@ import { IRouter } from "../irouter";
 @ServiceContract(IApplicationPartLifecycle)
 export class DefaultNavigationHandler {
     private readonly _self: this;
+
     constructor(
+        private readonly _location: Location,
         @IRouter private readonly _router: IRouter
     ) {
         this._self = this;
@@ -17,7 +19,7 @@ export class DefaultNavigationHandler {
     }
 
     async [ApplicationPartLifecycleHooks.activated](): Promise<void> {
-        await this._self._router.eval(location.href);
+        await this._self._router.eval(this._location.href);
         return Promise.resolve();
     }
 

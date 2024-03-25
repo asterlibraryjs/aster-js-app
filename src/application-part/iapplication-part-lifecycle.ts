@@ -1,8 +1,9 @@
 import { Constructor } from "@aster-js/core";
-import { ServiceIdentifier } from "@aster-js/ioc";
+import { AppServiceId } from "../abstraction/app-service-id";
 
-export const IApplicationPartLifecycle = ServiceIdentifier<IApplicationPartLifecycle>({ name: "@aster-js/app/IApplicationPartLifecycle", unique: true });
+export const IApplicationPartLifecycle = AppServiceId<IApplicationPartLifecycle>("IApplicationPartLifecycle");
 
+/** Enumerate all application hooks supported in the lifecycle of any service registered in an ApplicationPart */
 export namespace ApplicationPartLifecycleHooks {
 
     /** Symbol used to identify a method called during setup */

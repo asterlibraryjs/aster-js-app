@@ -3,10 +3,6 @@ import { AnySegmentArguments } from "../segment-arguments";
 import { IUrlValueValidator, IUrlValueValidatorFactory } from "./iurl-value-validator";
 import { UrlEnumValidator, UrlRangeValidator, UrlRegexValidator } from "./url-value-validators";
 
-const STRING_INDICATOR_CHAR = "$";
-const NUMBER_INDICATOR_CHAR = "+";
-const BOOL_INDICATOR_CHAR = "!";
-
 @ServiceContract(IUrlValueValidatorFactory)
 export class DefaultUrlValueValidatorFactory {
 

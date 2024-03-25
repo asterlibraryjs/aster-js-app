@@ -1,6 +1,6 @@
 import { IRouteSegment } from "../iroute-segment";
-import { RouteResolutionContext } from "../route-resolution-context";
-import { RouteValues } from "../routing-invocation-context";
+import { RouteResolutionCursor } from "../route-resolution-cusor";
+import { RouteValues } from "../route-data";
 
 
 export class StaticRouteSegment implements IRouteSegment {
@@ -15,7 +15,7 @@ export class StaticRouteSegment implements IRouteSegment {
         return segment === this._segment;
     }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
         const current = ctx.peek();
         if (current !== this._segment) {
             throw new Error(`Invalid token: expected segment equals to "${this._segment}" but current segment is equal to "${current}"`);

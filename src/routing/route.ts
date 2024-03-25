@@ -1,7 +1,7 @@
 import { IRouteSegment } from "./iroute-segment";
 import { WildcardRouteSegment, RelativeRouteSegment } from "./route-segments";
-import { RouteResolutionContext } from "./route-resolution-context";
-import { RouteValues } from "./routing-invocation-context";
+import { RouteResolutionCursor } from "./route-resolution-cusor";
+import { RouteValues } from "./route-data";
 import { Path } from "./path";
 
 /**
@@ -34,12 +34,12 @@ export class Route implements Iterable<IRouteSegment>{
         this._segments = array;
     }
 
-    match(ctx: RouteResolutionContext): boolean {
+    match(ctx: RouteResolutionCursor): boolean {
         if (!this._wildcard && ctx.remaining > this._segments.length) return false;
         if (this._relative && !ctx.relative) return false;
 
         for (let idx = 0; idx < this._segments.length; idx++) {
-            const value = ctx.getAt(idx);
+            const value = ctx.peek(idx);
             if (!this._segments[idx].match(value)) {
                 return false;
             }
@@ -48,7 +48,7 @@ export class Route implements Iterable<IRouteSegment>{
         return true;
     }
 
-    getRouteValues(ctx: RouteResolutionContext): [path: string, values: RouteValues] {
+    getRouteValues(ctx: RouteResolutionCursor): [path: string, values: RouteValues] {
         const values: RouteValues = {};
         const path: string[] = [];
         for (let i = 0; i < this._segments.length; i++) {

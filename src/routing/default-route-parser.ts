@@ -5,7 +5,7 @@ import { WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment } from "
 import { IUrlValueConverterFactory } from "./url-value-converter";
 import { ValueRouteSegment } from "./route-segments/value-route-segment";
 import { ServiceContract } from "@aster-js/ioc";
-import { RouteValue } from "./routing-invocation-context";
+import { RouteValue } from "./route-data";
 import { asserts } from "@aster-js/core";
 import { AnySegmentArguments, SegmentArguments } from "./segment-arguments";
 import { IUrlValueValidatorFactory } from "./url-value-validator/iurl-value-validator";

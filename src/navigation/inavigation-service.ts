@@ -1,6 +1,6 @@
-import { ServiceIdentifier } from "@aster-js/ioc";
+import { AppServiceId } from "../abstraction/app-service-id";
 
-export const INavigationService = ServiceIdentifier<INavigationService>({ name: "@aster-js/app/INavigationService", unique: true });
+export const INavigationService = AppServiceId<INavigationService>("INavigationService");
 
 /**
  * Service ID and Implementation for a service that handle navigation properly

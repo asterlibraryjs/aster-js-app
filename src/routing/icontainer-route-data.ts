@@ -1,6 +1,7 @@
-import { ServiceContract, ServiceIdentifier } from "@aster-js/ioc";
+import { ServiceContract } from "@aster-js/ioc";
+import { AppServiceId } from "../abstraction/app-service-id";
 import { Route } from "./route";
-import { SearchValues, RouteValues } from "./routing-invocation-context";
+import { SearchValues, RouteValues } from "./route-data";
 import { IRouteData } from "./iroute-data";
 import { IRouter } from "./irouter";
 import { ApplicationPartLifecycleHooks } from "../application-part";
@@ -10,7 +11,7 @@ import { ApplicationPartLifecycleHooks } from "../application-part";
  *
  * To get part route data (route data registered by part route declarations), use IPartRouteData service.
  */
-export const IContainerRouteData = ServiceIdentifier<IRouteData>({ name: "@aster-js/app/IContainerRouteData", unique: true })
+export const IContainerRouteData = AppServiceId<IRouteData>("IContainerRouteData")
 
 @ServiceContract(IContainerRouteData)
 export class ContainerRouteData implements IRouteData {

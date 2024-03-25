@@ -1,5 +1,5 @@
 import { Route } from "./route";
-import { SearchValues, RouteValues } from "./routing-invocation-context";
+import { SearchValues, RouteValues } from "./route-data";
 
 export interface IRouteData {
     /** Gets the evaluated path */

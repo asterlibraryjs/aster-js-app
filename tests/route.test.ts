@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Route, RouteResolutionContext } from "../src";
+import { Route, RouteResolutionCursor } from "../src";
 import { assertStaticSegment, assertValueSegment } from "./route-asserts";
 import { DefaultRouteParser } from "../src/routing/default-route-parser";
 import { DefaultUrlValueValidatorFactory } from "../src/routing/url-value-validator/default-url-value-validator-factory";
@@ -158,7 +158,7 @@ describe("Route", () => {
 
     it("Should get all route values", () => {
         const route = parse("/items/:item/:mode<get|set>/field/:field?description/:+id?");
-        const ctx = RouteResolutionContext.create("items/robots/set/field/title/55".split("/"), false);
+        const ctx = RouteResolutionCursor.read("items/robots/set/field/title/55");
 
         const [path, values] = route.getRouteValues(ctx);
 
@@ -169,7 +169,7 @@ describe("Route", () => {
     it("Should get all route values", () => {
         const route1 = parse("/items/:item/:mode<get|set>");
         const route2 = parse("/items/:item/:mode");
-        const ctx = RouteResolutionContext.create("items/robots/bob".split("/"), false);
+        const ctx = RouteResolutionCursor.read("items/robots/bob");
 
         assert.isFalse(route1.match(ctx));
         assert.isTrue(route2.match(ctx));
@@ -177,28 +177,29 @@ describe("Route", () => {
 
     it("Should match a single value with a default", () => {
         const route = parse("/:part?index");
-        const ctx = RouteResolutionContext.create(["context.html"], false);
+        const ctx = RouteResolutionCursor.read("context.html");
 
         assert.isTrue(route.match(ctx));
     });
 
     it("Should match a empty route with default", () => {
         const route = parse("/:part?index");
-        const ctx = RouteResolutionContext.create([], false);
+        const ctx = RouteResolutionCursor.read("/");
 
         assert.isTrue(route.match(ctx));
     });
 
     ([
-        { routePath: "~/:name<^bob[0-9]?$>/:!love<yeah|boo>", relative: true, wildcard: false, path: "/bob6/boo", values: { name: "bob6", love: false } },
-        { routePath: "~/:item?robots", relative: true, wildcard: false, path: "/", values: { item: "robots" } },
+        { routePath: "~/:name<^bob[0-9]?$>/:!love<yeah|boo>", relative: true, wildcard: false, path: "!/bob6/boo", values: { name: "bob6", love: false } },
+        { routePath: "~/:item?robots", relative: true, wildcard: false, path: "!/", values: { item: "robots" } },
         { routePath: "/items/:item/field/*", relative: false, wildcard: true, path: "items/robots/field/title/55", values: { item: "robots" } },
         { routePath: "/items/:item/:field<name|title|id>", relative: false, wildcard: false, path: "items/robots/title", values: { item: "robots", field: "title" } },
         { routePath: "/items/:item/:+field<22..33>", relative: false, wildcard: false, path: "items/robots/22", values: { item: "robots", field: 22 } },
         { routePath: "/items/:item/:+field<22..>", relative: false, wildcard: false, path: "items/robots/5666684112", values: { item: "robots", field: 5666684112 } },
         { routePath: "/items/:item/:+field<..33>", relative: false, wildcard: false, path: "items/robots/-555522", values: { item: "robots", field: -555522 } },
         { routePath: "/items/:item/:+field<22.5..33.3>", relative: false, wildcard: false, path: "items/robots/22.6", values: { item: "robots", field: 22.6 } },
-        { routePath: "/items/:item/", relative: false, wildcard: false, path: "/items/robot%20de%20l'espace", values: { item: "robot de l'espace" } }
+        { routePath: "/items/:item/", relative: false, wildcard: false, path: "/items/robot%20de%20l'espace", values: { item: "robot de l'espace" } },
+        { routePath: "~/:field?id/*", relative: true, wildcard: true, path: "!/", values: { field: "id" } },
     ] as const)
         .forEach(({ routePath, relative, wildcard, path, values }) => {
             it(`Should match a route ${routePath}`, () => {
@@ -207,7 +208,7 @@ describe("Route", () => {
                 assert.equal(route.relative, relative, "Is relative");
                 assert.equal(route.wildcard, wildcard, "Is wildcard");
 
-                const ctx = RouteResolutionContext.parse(path, relative);
+                const ctx = RouteResolutionCursor.read(path, { relativeIndicator: "!" });
 
                 const isMatch = route.match(ctx);
 

@@ -86,13 +86,21 @@ export class Path implements Iterable<string>{
         return Path.join(this._segments);
     }
 
+    equals(other: Path): boolean {
+        return this._segments.length === other._segments.length
+            && this._segments.every((segment, idx) => segment === other._segments[idx]);
+    }
+
     [Symbol.iterator](): Iterator<string> {
         return this._segments[Symbol.iterator]();
     }
 
     /** Parses the specified path into a Path instance. */
     static parse(path: string, options?: PathParsingOptions): Path {
-        const segments = Path.split(path);
+        const segments = Path.split(path, options?.separator);
+
+        if(segments.length === 0) return Path.empty;
+
         if (segments[0] === (options?.relativeIndicator || RoutingConstants.RELATIVE_URL_CHAR)) {
             return new Path(segments.slice(1), true);
         }
@@ -116,11 +124,11 @@ export class Path implements Iterable<string>{
 
     /** Joins the specified segments into a path. */
     static join(segments: readonly string[]): string {
+        if(segments.length === 0) return SEGMENT_SEPARATOR;
+
         const builder = Query(segments)
-            .map(x => this.trim(x))
-            .prepend("")
-            .append("")
-        return builder.toArray().join(SEGMENT_SEPARATOR);
+            .map(x => this.trim(x));
+        return SEGMENT_SEPARATOR + builder.toArray().join(SEGMENT_SEPARATOR) + SEGMENT_SEPARATOR;
     }
 
     /** Returns whether the specified path is empty. */
