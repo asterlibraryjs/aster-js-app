@@ -1,5 +1,5 @@
-import type { RouteValue } from "../routing-invocation-context";
-import { IUrlValueConverter } from "./iurl-value-converter";
+import type { RouteValue } from "../route-data";
+import type { IUrlValueConverter } from "./iurl-value-converter";
 
 export class UrlStringValueConverter implements IUrlValueConverter {
     canConvert(value: string): boolean {

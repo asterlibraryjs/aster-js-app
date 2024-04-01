@@ -1,8 +1,8 @@
-import { RouteResolutionContext } from "./route-resolution-context";
-import { RouteValues } from "./routing-invocation-context";
+import { RouteResolutionCursor } from "./route-resolution-cusor";
+import { RouteValues } from "./route-data";
 
 export interface IRouteSegment {
     match(segment: string | undefined): boolean;
-    read(ctx: RouteResolutionContext, values: RouteValues): string | null;
+    read(ctx: RouteResolutionCursor, values: RouteValues): string | null;
     resolve(values: RouteValues, consume?: boolean): string | null;
 }

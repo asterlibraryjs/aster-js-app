@@ -1,7 +1,7 @@
 import { IRouteSegment } from "../iroute-segment";
-import { RouteResolutionContext } from "../route-resolution-context";
+import { RouteResolutionCursor } from "../route-resolution-cusor";
 import { RoutingConstants } from "../routing-constants";
-import { RouteValues } from "../routing-invocation-context";
+import { RouteValues } from "../route-data";
 
 export class RelativeRouteSegment implements IRouteSegment {
 
@@ -11,7 +11,7 @@ export class RelativeRouteSegment implements IRouteSegment {
 
     match(segment: string | undefined): boolean { return true; }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
         const current = ctx.peek();
         if (current !== RoutingConstants.RELATIVE_CHAR) {
             throw new Error(`Invalid token: expected segment to be a "~" symbol but current segment is equal to "${current}"`);

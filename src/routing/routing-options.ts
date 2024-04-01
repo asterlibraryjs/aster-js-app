@@ -1,6 +1,6 @@
 import { ServiceIdentifier } from "@aster-js/ioc";
 
-export const RoutingOptions = ServiceIdentifier<RoutingOptions>({ name: "@aster-js/app/RoutingOptions", unique: true });
+export const RoutingOptions = ServiceIdentifier<RoutingOptions>({ name: "RoutingOptions", namespace: "@aster-js/app", unique: true });
 
 /**
  * Options to configure routing services.

@@ -6,7 +6,7 @@ export class ApplicationPartLifecycleWrapper implements IApplicationPartLifecycl
     private readonly _instance: IApplicationPartLifecycle;
 
     constructor(
-        descriptor: IServiceDescriptor,
+        readonly descriptor: IServiceDescriptor,
         @IServiceProvider serviceProvider: IServiceProvider
     ) {
         this._instance = <IApplicationPartLifecycle>serviceProvider.get(descriptor, true);

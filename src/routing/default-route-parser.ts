@@ -5,7 +5,7 @@ import { WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment } from "
 import { IUrlValueConverterFactory } from "./url-value-converter";
 import { ValueRouteSegment } from "./route-segments/value-route-segment";
 import { ServiceContract } from "@aster-js/ioc";
-import { RouteValue } from "./routing-invocation-context";
+import { RouteValue } from "./route-data";
 import { asserts } from "@aster-js/core";
 import { AnySegmentArguments, SegmentArguments } from "./segment-arguments";
 import { IUrlValueValidatorFactory } from "./url-value-validator/iurl-value-validator";
@@ -75,7 +75,7 @@ export class DefaultRouteParser implements IRouteParser {
         let defaultValue: RouteValue | null = null;
 
         const argsIdx = segment.indexOf(AnySegmentArguments.OPEN_CHAR);
-        let nullableIdx = segment.lastIndexOf(NULLABLE_CHAR);
+        const nullableIdx = segment.lastIndexOf(NULLABLE_CHAR);
 
         const nameEndIdx = argsIdx !== -1 ? argsIdx : nullableIdx !== -1 ? nullableIdx : -1;
         let name = nameEndIdx === -1 ? segment : segment.substring(0, nameEndIdx);

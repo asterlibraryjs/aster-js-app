@@ -113,17 +113,18 @@ export class DefaultSettingService {
 The routing allow you to let the remaining part of the url to a child module, this way each module can decide of its own url strategy:
 ```ts
 // File: /src/modules/settings/configure-client-module.ts
-import { IAppConfigureHandler, IApplicationPartBuilder, IApplicationPart } from "@aster-js/app";
+import { IAppConfigureHandler, configure, IApplicationPartBuilder, IApplicationPart } from "@aster-js/app";
 import { DefaultSettingService } from "./services";
 
 export class ConfigureSettingsModule implements IAppConfigureHandler {
+    // `configure` is a symbol and that helps to distinguish between a callback or an `IAppConfigureHandler` implementation
     [configure](builder: IApplicationPartBuilder, host?: IApplicationPart): void {
         builder.configure(x => x.addSingleton(DefaultSettingService));
     }
 }
 
 // File: /src/modules/client/configure-client-module.ts
-import { IAppConfigureHandler, IApplicationPartBuilder, IApplicationPart } from "@aster-js/app";
+import { IAppConfigureHandler, configure, IApplicationPartBuilder, IApplicationPart } from "@aster-js/app";
 import { ConfigureSettingsModule } from "./modules/settings/";
 
 export class ConfigureClientModule implements IAppConfigureHandler {
@@ -225,35 +226,37 @@ In this case, we are going to use Svelte to render our views so we want to retur
 
 ```ts
 // File: ./src/shared/svelte-view-result.ts
+import { Constructor } from "@aster-js/core";
 import { SinglePageApplication } from "@aster-js/app";
 
-// A class can also be used to implement `IRoutingResult`
-export function svelteView(component: Constructor, args: any): IRoutingResult {
-    const root = document.getElementById("#root");
-    return {
-        exec: (app: IApplicationPart) => {
-            new component(root, args);
-            return Promise.resolve();
-        };
+export class SvelteViewResult implements IRoutingResult {
+    constructor(
+        private readonly _component: Constructor,
+        private readonly _args: any
+    )
+    exec(app: IApplicationPart): Promise<void> {
+        const root = document.getElementById("#root");
+        new this._component(root, this._args);
+        return Promise.resolve();
     }
 }
 
 // File: ./controllers/customer-view-controller.ts
 import { RoutePath, FromSearch, FromRoute } from "@aster-js/app";
-import { svelteView } from "../shared/svelte-view-result";
+import { SvelteViewResult } from "../shared/svelte-view-result";
 import CustomerList from "../views/customer-list.svelte";
 import CustomerDetail from "../views/customer-detail.svelte";
 
 export class CustomerViewController {
     @RoutePath("/customers")
     viewAll(@FromSearch("page") page?: string): IRoutingResult {
-        return svelteView(CustomerList, { page: page ? +page : 1 })
+        return new SvelteViewResult(CustomerList, { page: page ? +page : 1 })
     }
 
     @RoutePath("/customers/detail/:+id")
     viewCustomer(@FromRoute("id") id: number | null) {
         if(id === null) return
-        return svelteView(CustomerDetail, { id })
+        return new SvelteViewResult(CustomerDetail, { id });
     }
 }
 

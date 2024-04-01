@@ -5,7 +5,7 @@ import pkg from "./package.json" assert { type: "json" };
 
 export default [
     {
-        input: ".bin/tests/*.test.js",
+        input: [".bin/tests/*.test.js", ".bin/src/**/*.spec.js"],
         output: [
             {
                 file: ".bin/tests.js",

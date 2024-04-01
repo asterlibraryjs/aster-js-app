@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { INavigationService, SinglePageApplication } from "../src";
+import { INavigationService, IRouter, SinglePageApplication } from "../src";
 
 describe("NavigationService", () => {
 
@@ -46,6 +46,30 @@ describe("NavigationService", () => {
         using app = await SinglePageApplication.start("test", builder => {
             builder.addPart("/:part?home/*", x => {
                 x.addAction("~/:view?", () => { callCount++; });
+            });
+        });
+
+        assert.isDefined(app.activeChild);
+        assert.equal(callCount, 1);
+
+        const svc = app.activeChild!.services.get(INavigationService, true);
+
+        await svc.navigate("~/test");
+
+        assert.equal(location.href, exepcted);
+        assert.equal(callCount, 2);
+    });
+
+    it("Should call a part action and change part", async () => {
+        let callCount = 0;
+        const exepcted = new URL("/home/test", location.href).href;
+
+
+        using app = await SinglePageApplication.start("test", builder => {
+            builder.addPart("/:part?home/*", x => {
+                x.addAction("~/:view?", IRouter, (svc: IRouter) => {
+                    callCount++;
+                 });
             });
         });
 

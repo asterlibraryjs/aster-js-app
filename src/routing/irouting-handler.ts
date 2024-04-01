@@ -1,9 +1,8 @@
 import { ServiceIdentifier } from "@aster-js/ioc";
-import { Route } from "./route";
-import { RouteData } from "./routing-invocation-context";
+import { RouteData } from "./route-data";
 import { IApplicationPart } from "../abstraction";
 
-export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>({ name: "@aster-js/app/IRoutingHandler", unique: true });
+export const IRoutingHandler = ServiceIdentifier<IRoutingHandler>({ name: "IRoutingHandler", namespace: "@aster-js/app", unique: true });
 
 /**
  * Service ID and Implementation for routing handler.

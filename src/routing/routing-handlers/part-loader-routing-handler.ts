@@ -1,32 +1,23 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { Route } from "../route";
 import { IRoutingHandler } from "../irouting-handler";
-import { RouteData } from "../routing-invocation-context";
+import { RouteData } from "../route-data";
 import { IAppConfigureHandler, IApplicationPart } from "../../abstraction";
 import { Constructor } from "@aster-js/core";
-import { IRouteParser } from "../iroute-parser";
+
+const routeName = "part";
 
 @ServiceContract(IRoutingHandler)
 export class PartLoaderRoutingHandler implements IRoutingHandler {
-    private readonly _route: Route;
-
-    get path(): string { return this._path; }
-
-    get route(): Route { return this._route; }
 
     constructor(
-        private readonly _path: string,
-        private readonly _configHandler: Constructor<IAppConfigureHandler>,
-        @IRouteParser routeParser: IRouteParser
-    ) {
-        this._route = new Route(
-            routeParser.parse(_path)
-        );
-    }
+        readonly path: string,
+        private readonly _configHandler: Constructor<IAppConfigureHandler>
+    ) { }
 
     async handle(data: RouteData, app: IApplicationPart): Promise<void> {
-        const appName = data.values["part"];
+        const appName = data.values[routeName];
         if (typeof appName !== "string") throw new Error(`Missing route value named 'part'`);
+
         await app.load(appName, this._configHandler);
     }
 }

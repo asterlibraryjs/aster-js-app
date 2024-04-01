@@ -1,6 +1,6 @@
 import { IRouteSegment } from "../iroute-segment";
-import { RouteResolutionContext } from "../route-resolution-context";
-import { RouteValues } from "../routing-invocation-context";
+import { RouteResolutionCursor } from "../route-resolution-cusor";
+import { RouteValues } from "../route-data";
 
 const WILDCARD_CHAR = "*";
 
@@ -9,9 +9,9 @@ export class WildcardRouteSegment implements IRouteSegment {
 
     private constructor() { }
 
-    match(segment: string | undefined): boolean { return true; }
+    match(segment: string | undefined): boolean { return segment === WILDCARD_CHAR; }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
         const current = ctx.peek();
         if (current !== WILDCARD_CHAR) {
             throw new Error(`Invalid token: expected segment to be a wildcard symbol but current segment is equal to "${current}"`);

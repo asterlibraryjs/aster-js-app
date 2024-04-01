@@ -1,7 +1,7 @@
 import { cacheResult } from "@aster-js/decorators";
 import { IRouteSegment } from "../iroute-segment";
-import { RouteResolutionContext } from "../route-resolution-context";
-import { RouteValue, RouteValues } from "../routing-invocation-context";
+import { RouteResolutionCursor } from "../route-resolution-cusor";
+import { RouteValue, RouteValues } from "../route-data";
 import { IUrlValueConverter } from "../url-value-converter/iurl-value-converter";
 import { IUrlValueValidator } from "../url-value-validator/iurl-value-validator";
 
@@ -33,7 +33,7 @@ export class ValueRouteSegment implements IRouteSegment {
         return this._converter.canConvert(segment) && (this._validator?.validate(segment) ?? true);
     }
 
-    read(ctx: RouteResolutionContext, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
         const value = ctx.shift();
         if (typeof value !== "undefined" && value !== null) {
             values[this._name] = this._converter.convert(value);
