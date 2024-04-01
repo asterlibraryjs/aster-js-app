@@ -75,7 +75,7 @@ export class DefaultRouteParser implements IRouteParser {
         let defaultValue: RouteValue | null = null;
 
         const argsIdx = segment.indexOf(AnySegmentArguments.OPEN_CHAR);
-        let nullableIdx = segment.lastIndexOf(NULLABLE_CHAR);
+        const nullableIdx = segment.lastIndexOf(NULLABLE_CHAR);
 
         const nameEndIdx = argsIdx !== -1 ? argsIdx : nullableIdx !== -1 ? nullableIdx : -1;
         let name = nameEndIdx === -1 ? segment : segment.substring(0, nameEndIdx);

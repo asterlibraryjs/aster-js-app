@@ -57,7 +57,7 @@ describe("Controller", () => {
 
     it("Should use a controller nested in an application part to handle a route", async () => {
         const root = document.createElement("div");
-        root.innerHTML = "<b>Loading...</b>"
+        root.innerHTML = "<b>Loading...</b>";
 
         class CustomerViewController {
 

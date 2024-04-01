@@ -1,6 +1,6 @@
 import { AbortToken, Delayed } from "@aster-js/async";
 import { Constructor, DisposableHost, IDisposable } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ILogger, IServiceDescriptor, ServiceCollection, ServiceProvider, ServiceScope } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, ILogger, IServiceDescriptor, ServiceCollection, ServiceIdentity, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { AppConfigureDelegate, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { Memoize } from "@aster-js/decorators";
 import { ApplicationPartLifecycleHook, ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
@@ -133,13 +133,18 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     async activate(name: string): Promise<void> {
         if (!name) throw new Error("name cannot be null or empty");
 
+        if(this._current?.name === name) {
+            this._logger.debug("Part {name} is already activated", name);
+            return;
+        }
+
         const part = this._children.get(name);
         if (part) {
             await this.activatePart(part);
             this._current = part;
         }
         else {
-            this._logger.error(null, "Cannot find any part named {name}");
+            this._logger.error(null, "Cannot find any part named {name}", name);
         }
     }
 
@@ -159,25 +164,32 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
             }
         }
 
-        this._logger.debug("Activating part {name}", name);
+        this._logger.debug("Activating part {name}", part.name);
         try {
             await this.invokeLifecycleHook(part, ApplicationPartLifecycleHooks.activated);
-            this._logger.info("Part {path} activated", part.path);
+            this._logger.info("Part {name} activated", part.name);
         }
         catch (err) {
-            this._logger.error(err, "Error while activating part {path}", part.path);
+            this._logger.error(err, "Error while activating part {name}", part.name);
             return;
         }
     }
 
     private async invokeLifecycleHook(part: IApplicationPart, hook: ApplicationPartLifecycleHook): Promise<void> {
         const promises = [];
-        for (const svc of part.services.getAll(IApplicationPartLifecycle, true)) {
 
-            this._logger.debug("Calling hook {symbol} on service {service}", hook.description, svc.constructor.name);
+        for (const svc of part.services.getAll(IApplicationPartLifecycle, true)) {
+            if(svc instanceof ApplicationPartLifecycleWrapper) {
+                this._logger.debug(`Calling hook "{symbol}" on service {service}`, hook.description, svc.descriptor.ctor.name);
+            }
+            else{
+                const name = ServiceIdentity.get(svc)?.desc.ctor.name;
+                this._logger.debug(`Calling hook "{symbol}" on service {service}`, hook.description, name);
+            }
             const result = ApplicationPartLifecycleHooks.invoke(svc, hook);
             promises.push(result);
         }
+
         const allSettledResult = await Promise.allSettled(promises);
         for (const result of allSettledResult) {
             if (result.status === "rejected") {

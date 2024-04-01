@@ -14,14 +14,13 @@ export namespace ApplicationPartUtils {
      * @param includeSelf Include the current service in the scan
      * @param nested Indicate whether or not it should return nested children or only direct children
      */
-    export function* scanActiveChildren<T>(svc: T, {includeSelf, nested}: ApplicationPartOptions = {}): Iterable<T> {
+    export function* scanActiveChildren<T>(svc: T, { includeSelf, nested }: ApplicationPartOptions = {}): Iterable<T> {
         if (includeSelf) yield svc;
 
         const identity = ServiceIdentity.get(svc);
         asserts.ensure(identity, "Service must have an identity");
 
         const app = identity.owner.get(IApplicationPart, true);
-
         let active = app.activeChild;
         if (active) {
             yield* active.services.getAll(identity.desc.serviceId, true);

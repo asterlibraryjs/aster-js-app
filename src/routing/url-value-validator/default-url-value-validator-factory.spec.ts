@@ -34,7 +34,7 @@ describe("DefaultUrlValueValidatorFactory", () => {
             it(`Should validate "${value}" with args "${args.join(",")}"`, () => {
                 const validator = factory.create(args);
 
-                assert.isDefined(validator), `Validator ${args[0]} is defined`;
+                assert.isDefined(validator, `Validator ${args[0]} is defined`);
 
                 const result = validator!.validate(value);
 

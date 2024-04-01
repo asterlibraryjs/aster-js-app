@@ -41,7 +41,7 @@ describe("SinglePageApplication", () => {
     }
 
     it("Should create an empty application", () => {
-       using app = SinglePageApplication.create("test").build();
+        using app = SinglePageApplication.create("test").build();
 
         assert.isFalse(app.running, "Application not started");
         assertKernelServices(app);
@@ -100,7 +100,7 @@ describe("SinglePageApplication", () => {
             }
 
             [ApplicationPartLifecycleHooks.activated]() {
-                assert.equal(this.state,  "setup");
+                assert.equal(this.state, "setup");
                 this.state = "activated";
             }
         }

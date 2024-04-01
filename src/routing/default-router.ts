@@ -29,26 +29,31 @@ export class DefaultRouter implements IRouter {
         @ILogger private readonly _logger: ILogger
     ) { }
 
-    eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
-        // Relative path
-        if (url.startsWith(RoutingConstants.RELATIVE_CHAR)) {
-            return this.evalRelativePath(url, defaults);
+    async eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
+        this._logger.debug(`Evaluating route "{url}"`, url);
+        try {
+            // Relative path
+            if (url.startsWith(RoutingConstants.RELATIVE_CHAR)) {
+                return await this.evalRelativePath(url, defaults);
+            }
+
+            // Retrieve the root router to handle not relative path
+            const root = findRootService(IRouter, this._application);
+            if (root && root !== this) {
+                return await root.eval(url, defaults);
+            }
+
+            // Non relative path (root router context)
+            // This url may be relative or not
+            const finalUrl = new URL(url, location.origin);
+
+            const path = Path.parse(finalUrl.pathname);
+            const search = SearchValues.parse(finalUrl.search);
+            return await this.evalCore(path, search, defaults);
         }
-
-        // Retrieve the root router to handle not relative path
-        const root = findRootService(IRouter, this._application);
-        if (root && root !== this) {
-            return root.eval(url, defaults);
+        finally {
+            this._logger.debug(`Route "{url}" evaluation completed`, url);
         }
-
-        // Non relative path (root router context)
-        // This url may be relative or not
-        const finalUrl = new URL(url, location.origin);
-
-        const path = Path.parse(finalUrl.pathname);
-        const search = SearchValues.parse(finalUrl.search);
-        return this.evalCore(path, search, defaults);
-
     }
 
     private evalRelativePath(relativeUrl: string, defaults: RouteValues): Promise<boolean> {
@@ -114,12 +119,26 @@ export class DefaultRouter implements IRouter {
 
         this._onDidEvaluate.emit(path, route, routeData.values, routeData.query);
 
-        this._handlerInvoker.invoke(handler, ctx, routeData);
+        await this._handlerInvoker.invoke(handler, ctx, routeData);
 
-        for (const child of ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })) {
-            if (await child.handle(ctx, routeData.values, query)) {
-                this._logger.debug("Child router {router} handled the remaining route {path}", child, ctx.toString());
+        const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
+        if (activeChildren.length !== 0) {
+            for (const child of activeChildren) {
+                if (await child.handle(ctx, routeData.values, query)) {
+                    this._logger.debug("Child router handled the remaining route {path}", ctx.toString());
+                    return;
+                }
             }
+
+            if (ctx.remaining !== 0) {
+                this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", ctx.remainingPath);
+            }
+        }
+        else if (ctx.remaining !== 0) {
+            this._logger.warn(null, "No child to handle the remaining route path: {relativeUrl}", ctx.remainingPath);
+        }
+        else {
+            this._logger.debug("Routing completed successfully.");
         }
     }
 }

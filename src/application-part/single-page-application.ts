@@ -40,7 +40,7 @@ export class SinglePageApplication extends ApplicationPart {
     }
 
     async start(): Promise<boolean> {
-        if(await this._parent.start()&& await super.start()){
+        if (await this._parent.start() && await super.start()) {
             await this.activatePart(this);
             return true;
         }

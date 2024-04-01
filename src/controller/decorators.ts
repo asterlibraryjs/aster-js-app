@@ -27,7 +27,7 @@ export const RoutePath = (path: string) => {
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire RouteValues bag
  */
  export const FromRoute = (name?: string) => {
-    return <ParameterDecorator>function (target: Object, propertyKey: string | symbol, index: number) {
+    return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
         const accessor = ({ values }: RouteData) => name ? values[name] : structuredClone(values);
@@ -40,7 +40,7 @@ export const RoutePath = (path: string) => {
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire QueryValues bag
  */
 export const FromSearch = (name?: string) => {
-    return <ParameterDecorator>function (target: Object, propertyKey: string | symbol, index: number) {
+    return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
         const accessor = ({ query }: RouteData) => name ? query[name] : structuredClone(query);
@@ -54,7 +54,7 @@ export const FromSearch = (name?: string) => {
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire ParamValues bag
  */
 export const FromUrl = (name?: string) => {
-    return <ParameterDecorator>function (target: Object, propertyKey: string | symbol, index: number) {
+    return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
         const accessor = ({ values, query }: RouteData) => {
