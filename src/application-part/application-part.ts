@@ -14,8 +14,8 @@ import { DefaultUrlValueValidatorFactory } from "../routing/url-value-validator/
 export abstract class ApplicationPart extends DisposableHost implements IApplicationPart {
     private readonly _module: IIoCModule;
     private readonly _children: Map<string, IApplicationPart> = new Map();
-    private _current?: IApplicationPart;
     private readonly _logger: ILogger;
+    private _current?: IApplicationPart;
 
     get name(): string { return this._module.name; }
 
@@ -40,8 +40,8 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         super();
         this._module = builder
             .configure(x => this.configureMandatoryAppPartServices(x))
-            .setupMany(IApplicationPartLifecycle, x => {
-                return ApplicationPartLifecycleHooks.invoke(x, ApplicationPartLifecycleHooks.setup);
+            .setup(IApplicationPart, x => {
+                ApplicationPartLifecycleHooks.invoke(x, ApplicationPartLifecycleHooks.setup)
             }, true)
             .build();
         this._logger = this._module.services.get(ILogger, true);
@@ -131,70 +131,55 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     }
 
     async activate(name: string): Promise<void> {
-        if (!name) throw new Error("name cannot be null or empty");
+        if (!name) throw new Error(`"name" parameter cannot be null or empty`);
 
-        if(this._current?.name === name) {
-            this._logger.debug("Part {name} is already activated", name);
+        if (this._current?.name === name) {
+            this._logger.debug(`Part "{name}" is already activated`, name);
             return;
         }
 
         const part = this._children.get(name);
         if (part) {
+            if (this._current) {
+                const allParts = [...Iterables.create(this._current, x => x.activeChild)].reverse();
+                for (const part of allParts) {
+                    this.desactivatePart(part);
+                }
+            }
+
             await this.activatePart(part);
             this._current = part;
         }
         else {
-            this._logger.error(null, "Cannot find any part named {name}", name);
+            this._logger.error(null, `Cannot find any part named "{name}"`, name);
         }
     }
 
     protected async activatePart(part: IApplicationPart): Promise<void> {
-        if (this._current) {
-            const allParts = [...Iterables.create(this._current, x => x.activeChild)].reverse();
-            for (const part of allParts) {
-                this._logger.debug("Dectivating current active parts from {path}", this._current.path);
-                try {
-                    await this.invokeLifecycleHook(part, ApplicationPartLifecycleHooks.deactivated);
-                    this._logger.info("Part {path} desactivated", this._current.path);
-                }
-                catch (err) {
-                    this._logger.error(err, "Error while desactivating part {path}", this._current.path);
-                    break;
-                }
-            }
-        }
-
-        this._logger.debug("Activating part {name}", part.name);
+        this._logger.debug(`Activating part "{name}"`, part.name);
         try {
-            await this.invokeLifecycleHook(part, ApplicationPartLifecycleHooks.activated);
-            this._logger.info("Part {name} activated", part.name);
+            await ApplicationPartLifecycleHooks.invoke(part, ApplicationPartLifecycleHooks.activated);
+            this._logger.info(`Part "{name}" activated`, part.name);
         }
         catch (err) {
-            this._logger.error(err, "Error while activating part {name}", part.name);
+            this._logger.error(err, `Error while activating part "{name}"`, part.name);
             return;
         }
     }
 
-    private async invokeLifecycleHook(part: IApplicationPart, hook: ApplicationPartLifecycleHook): Promise<void> {
-        const promises = [];
-
-        for (const svc of part.services.getAll(IApplicationPartLifecycle, true)) {
-            if(svc instanceof ApplicationPartLifecycleWrapper) {
-                this._logger.debug(`Calling hook "{symbol}" on service {service}`, hook.description, svc.descriptor.ctor.name);
+    private async desactivatePart(part: IApplicationPart): Promise<boolean> {
+        this._logger.debug(`Desactivating current active parts from "{path}"`, part.path);
+        try {
+            await ApplicationPartLifecycleHooks.invoke(part, ApplicationPartLifecycleHooks.deactivated);
+            if (part instanceof ApplicationPart) {
+                delete part._current;
             }
-            else{
-                const name = ServiceIdentity.get(svc)?.desc.ctor.name;
-                this._logger.debug(`Calling hook "{symbol}" on service {service}`, hook.description, name);
-            }
-            const result = ApplicationPartLifecycleHooks.invoke(svc, hook);
-            promises.push(result);
+            this._logger.info(`Part "{path}" desactivated`, part.path);
+            return true;
         }
-
-        const allSettledResult = await Promise.allSettled(promises);
-        for (const result of allSettledResult) {
-            if (result.status === "rejected") {
-                this._logger.error(result.reason, "An error occured while calling lifecycle hook {symbol}", hook.description);
-            }
+        catch (err) {
+            this._logger.error(err, `Error while desactivating part "{path}"`, part.path);
+            return false;
         }
     }
 
