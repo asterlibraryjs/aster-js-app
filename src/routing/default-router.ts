@@ -109,7 +109,7 @@ export class DefaultRouter implements IRouter {
         }
         const children = ApplicationPartUtils.scanActiveChildren(this._routingTable, { includeSelf: true, nested: true });
         return Query(children)
-            .flatMap(x => x.getHandlers())
+            .flatMap(([, x]) => x.getHandlers())
             .findFirst(([route]) => route.match(ctx));
     }
 
@@ -123,14 +123,18 @@ export class DefaultRouter implements IRouter {
 
         const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
         if (activeChildren.length !== 0) {
-            for (const child of activeChildren) {
-                if (await child.handle(ctx, routeData.values, query)) {
+            let flag = true;
+            for (const [part, child] of activeChildren) {
+                if (flag && await child.handle(ctx, routeData.values, query)) {
+                    flag = false;
                     this._logger.debug("Child router handled the remaining route {path}", ctx.toString());
-                    return;
+                }
+                else if (this._application.activeChild === part) {
+                    this._application.desactivate(part.name);
                 }
             }
 
-            if (ctx.remaining !== 0) {
+            if (flag && ctx.remaining !== 0) {
                 this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", ctx.remainingPath);
             }
         }
