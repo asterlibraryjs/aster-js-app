@@ -15,4 +15,6 @@ export interface IApplicationPart extends IIoCModule {
     load(name: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Promise<IApplicationPart>;
     /** Make a part of the application `activated` to call proper hooks from IApplicationPartLifecycle */
     activate(name: string): Promise<void>;
+    /** Make a part of the application `deactivated` to call proper hooks from IApplicationPartLifecycle */
+    desactivate(name: string): Promise<void>;
 }

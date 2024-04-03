@@ -155,6 +155,12 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         }
     }
 
+    async desactivate(name: string): Promise<void> {
+        if (this._current?.name === name) {
+            await this.desactivatePart(this._current);
+        }
+    }
+
     protected async activatePart(part: IApplicationPart): Promise<void> {
         this._logger.debug(`Activating part "{name}"`, part.name);
         try {
