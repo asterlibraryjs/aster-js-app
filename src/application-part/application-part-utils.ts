@@ -1,6 +1,7 @@
 import { ServiceIdentity } from "@aster-js/ioc";
 import { asserts } from "@aster-js/core";
 import { IApplicationPart } from "../abstraction";
+import { IPartRouteData, Route } from "../routing";
 
 export type ApplicationPartOptions = {
     readonly includeSelf?: boolean;
@@ -14,23 +15,25 @@ export namespace ApplicationPartUtils {
      * @param includeSelf Include the current service in the scan
      * @param nested Indicate whether or not it should return nested children or only direct children
      */
-    export function* scanActiveChildren<T>(svc: T, { includeSelf, nested }: ApplicationPartOptions = {}): Iterable<[IApplicationPart, T]> {
+    export function* scanActiveChildren<T>(svc: T, { includeSelf, nested }: ApplicationPartOptions = {}): Iterable<[Route, IApplicationPart, T]> {
         const identity = ServiceIdentity.get(svc);
 
         asserts.ensure(identity, "Service must have an identity");
 
         const app = identity.owner.get(IApplicationPart, true);
-        if (includeSelf) yield [app, svc];
+        const routeData = app.services.get(IPartRouteData, false);
+        if (includeSelf && routeData) yield [routeData.route, app, svc];
 
-        let current = app.activeChild;
-        while (current) {
-            for (const found of current.services.getAll(identity.desc.serviceId, true)) {
-                yield [current, found];
+        let { activeChild, activeRoute } = app;
+        while (activeRoute && activeChild) {
+            for (const found of activeChild.services.getAll(identity.desc.serviceId, true)) {
+                yield [activeRoute, activeChild, found];
             }
 
             if (!nested) break;
 
-            current = current.activeChild;
+            activeChild = activeChild.activeChild;
+            activeRoute = activeChild?.activeRoute;
         }
     }
 }

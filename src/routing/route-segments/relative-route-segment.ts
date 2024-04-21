@@ -24,6 +24,10 @@ export class RelativeRouteSegment implements IRouteSegment {
         return null;
     }
 
+    toString(): string {
+        return RoutingConstants.RELATIVE_CHAR;
+    }
+
     static isRelative(segment: string): boolean {
         return segment === RoutingConstants.RELATIVE_CHAR;
     }

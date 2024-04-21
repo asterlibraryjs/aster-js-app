@@ -109,13 +109,13 @@ export class DefaultRouter implements IRouter {
         }
         const children = ApplicationPartUtils.scanActiveChildren(this._routingTable, { includeSelf: true, nested: true });
         return Query(children)
-            .flatMap(([, x]) => x.getHandlers())
+            .flatMap(([, , x]) => x.getHandlers())
             .findFirst(([route]) => route.match(ctx));
     }
 
     private async invokeHandler(route: Route, handler: IRoutingHandler, ctx: RouteResolutionCursor, values: RouteValues, query: SearchValues): Promise<void> {
         const [path, localValues] = route.getRouteValues(ctx);
-        const routeData = RouteData.create(values, localValues, query);
+        const routeData = RouteData.create(route, values, localValues, query);
 
         this._onDidEvaluate.emit(path, route, routeData.values, routeData.query);
 
@@ -124,13 +124,16 @@ export class DefaultRouter implements IRouter {
         const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
         if (activeChildren.length !== 0) {
             let flag = true;
-            for (const [part, child] of activeChildren) {
-                if (flag && await child.handle(ctx, routeData.values, query)) {
+            for (const [activeRoute, activePart, child] of activeChildren) {
+                if (activeRoute !== route) {
+                    this._application.desactivate(activePart.name);
+                }
+                else if (flag && await child.handle(ctx, routeData.values, query)) {
                     flag = false;
                     this._logger.debug("Child router handled the remaining route {path}", ctx.toString());
                 }
-                else if (this._application.activeChild === part) {
-                    this._application.desactivate(part.name);
+                else if (this._application.activeChild === activePart) {
+                    this._application.desactivate(activePart.name);
                 }
             }
 

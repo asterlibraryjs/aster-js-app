@@ -4,13 +4,12 @@ import { RouteResolutionCursor } from "./route-resolution-cusor";
 import { RouteValues } from "./route-data";
 import { Path } from "./path";
 
-/**
- * Represents a route.
- */
-export class Route implements Iterable<IRouteSegment>{
+/** Represents a route. */
+export class Route implements Iterable<IRouteSegment> {
     private readonly _segments: readonly IRouteSegment[];
     private readonly _wildcard?: true;
     private readonly _relative?: true;
+    private readonly _toStringCache: string;
 
     static readonly empty = new Route([]);
 
@@ -20,6 +19,8 @@ export class Route implements Iterable<IRouteSegment>{
 
     constructor(segments: Iterable<IRouteSegment>) {
         const array = [...segments];
+        this._toStringCache = this.buildToString(array);
+
         if (array.length) {
             if (array[array.length - 1] === WildcardRouteSegment.instance) {
                 array.pop();
@@ -72,5 +73,14 @@ export class Route implements Iterable<IRouteSegment>{
 
     *[Symbol.iterator](): IterableIterator<IRouteSegment> {
         yield* this._segments;
+    }
+
+    toString(): string {
+        return this._toStringCache;
+    }
+
+    private buildToString(segments: readonly IRouteSegment[]): string {
+        const strSegments = segments.map(segment => segment.toString());
+        return Path.join(strSegments);
     }
 }
