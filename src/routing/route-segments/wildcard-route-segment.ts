@@ -24,6 +24,10 @@ export class WildcardRouteSegment implements IRouteSegment {
         return null;
     }
 
+    toString(): string {
+        return WILDCARD_CHAR;
+    }
+
     static isWildcard(segment: string): boolean {
         return segment === WILDCARD_CHAR;
     }

@@ -1,6 +1,7 @@
 import { Constructor } from "@aster-js/core";
 import { AppConfigureDelegate, IAppConfigureHandler, IApplicationPart } from "../../abstraction";
 import { IRoutingResult } from "../irouting-result";
+import { IContainerRouteData } from "../../routing";
 
 /**
  * Load an application part with the given name and configuration.
@@ -20,6 +21,7 @@ class PartResult implements IRoutingResult {
     ) {    }
 
     async exec(app: IApplicationPart): Promise<void> {
-        await app.load(this._name, this._configHandler);
+        const containerRouteData = app.services.get(IContainerRouteData, true);
+        await app.load(this._name, containerRouteData.route, this._configHandler);
     }
 }

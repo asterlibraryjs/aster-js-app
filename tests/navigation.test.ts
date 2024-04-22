@@ -69,7 +69,7 @@ describe("NavigationService", () => {
             builder.addPart("/:part?home/*", x => {
                 x.addAction("~/:view?", IRouter, (svc: IRouter) => {
                     callCount++;
-                 });
+                });
             });
         });
 
@@ -82,6 +82,30 @@ describe("NavigationService", () => {
 
         assert.equal(location.href, exepcted);
         assert.equal(callCount, 2);
+    });
+
+    it("Should navigate properly between parts", async () => {
+        let callCount = 0;
+
+        using app = await SinglePageApplication.start("test", builder => {
+            builder.addPart("/:part<home>?home/*", x => {
+                x.addPart("/:part<index>?index", _ => { callCount++; });
+                x.addPart("/:part<account>", _ => { callCount++; });
+            });
+            builder.addPart("/admin", _ => { });
+        });
+
+        assert.isDefined(app.activeChild);
+        assert.isDefined(app.activeChild?.activeChild);
+        assert.equal(callCount, 1);
+
+        const svc = app.services.get(INavigationService, true);
+
+        await svc.navigate("~/admin");
+
+        assert.isDefined(app.activeChild);
+        assert.isUndefined(app.activeChild!.activeChild);
+        assert.equal(callCount, 1);
     });
 
 });

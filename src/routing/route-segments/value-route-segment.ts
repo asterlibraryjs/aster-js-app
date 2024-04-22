@@ -8,6 +8,7 @@ import { IUrlValueValidator } from "../url-value-validator/iurl-value-validator"
 export type RouteValueValidator = (value: string) => boolean;
 
 export class ValueRouteSegment implements IRouteSegment {
+    private _toStringCache?: string;
 
     get name(): string { return this._name; }
 
@@ -58,5 +59,18 @@ export class ValueRouteSegment implements IRouteSegment {
         }
 
         return this.defaultValueString;
+    }
+
+    toString(): string {
+        if (!this._toStringCache) {
+            const builder = [this._name];
+
+            if (this._optional) builder.push("?");
+
+            if (this._defaultValue !== null) builder.push(`:${this.defaultValueString}`);
+
+            this._toStringCache = `{${builder.join("")}}`;
+        }
+        return this._toStringCache;
     }
 }

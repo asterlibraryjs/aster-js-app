@@ -1,11 +1,11 @@
 import { AbortToken, Delayed } from "@aster-js/async";
 import { Constructor, DisposableHost, IDisposable } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ILogger, IServiceDescriptor, ServiceCollection, ServiceIdentity, ServiceProvider, ServiceScope } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, ILogger, IServiceDescriptor, ServiceCollection, ServiceProvider, ServiceScope } from "@aster-js/ioc";
 import { AppConfigureDelegate, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { Memoize } from "@aster-js/decorators";
-import { ApplicationPartLifecycleHook, ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
+import { ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
 import { ApplicationPartLifecycleWrapper } from "./application-part-lifecycle-wrapper";
-import { ContainerRouteData, DefaultRoutingHandlerInvoker, DefaultRouter, PartRouteData, DefaultRouteParser, DefaultRoutingTable } from "../routing";
+import { ContainerRouteData, DefaultRoutingHandlerInvoker, DefaultRouter, PartRouteData, DefaultRouteParser, DefaultRoutingTable, Route } from "../routing";
 import { DefaultNavigationService } from "../navigation/navigation-service";
 import { Iterables } from "@aster-js/iterators";
 import { DefaultUrlValueConverterFactory } from "../routing/url-value-converter/default-url-value-converter-factory";
@@ -15,7 +15,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     private readonly _module: IIoCModule;
     private readonly _children: Map<string, IApplicationPart> = new Map();
     private readonly _logger: ILogger;
-    private _current?: IApplicationPart;
+    private _current: [Route, IApplicationPart] | [] = [];
 
     get name(): string { return this._module.name; }
 
@@ -25,7 +25,9 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
     get running(): boolean { return this._module.running; }
 
-    get activeChild(): IApplicationPart | undefined { return this._current; }
+    get activeRoute(): Route | undefined { return this._current[0]; }
+
+    get activeChild(): IApplicationPart | undefined { return this._current[1]; }
 
     @Memoize
     get ready(): PromiseLike<this> { return this._module.ready.then(() => this); }
@@ -103,18 +105,18 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
             IDisposable.safeDispose(current);
             this._children.delete(name);
 
-            if (current === this._current) {
-                delete this._current;
+            if (current === this._current[1]) {
+                this._current = [];
             }
         }
     }
 
     start(): Promise<boolean> { return this._module.start(); }
 
-    async load(name: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Promise<IApplicationPart> {
+    async load(name: string, route: Route, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): Promise<IApplicationPart> {
         const current = this._children.get(name);
         if (current) {
-            await this.activate(name);
+            await this.activate(name, route);
             return current;
         }
 
@@ -126,29 +128,30 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
         const part = builder.build();
         await part.start();
-        await this.activate(name);
+        await this.activate(name, route);
         return <IApplicationPart>part;
     }
 
-    async activate(name: string): Promise<void> {
+    async activate(name: string, route: Route): Promise<void> {
         if (!name) throw new Error(`"name" parameter cannot be null or empty`);
 
-        if (this._current?.name === name) {
+        if (this._current[0] === route && this._current[1]?.name === name) {
             this._logger.debug(`Part "{name}" is already activated`, name);
             return;
         }
 
         const part = this._children.get(name);
         if (part) {
-            if (this._current) {
-                const allParts = [...Iterables.create(this._current, x => x.activeChild)].reverse();
+            const current = this._current[1];
+            if (current) {
+                const allParts = [...Iterables.create(current, x => x.activeChild)].reverse();
                 for (const part of allParts) {
                     this.desactivatePart(part);
                 }
             }
 
             await this.activatePart(part);
-            this._current = part;
+            this._current = [route, part];
         }
         else {
             this._logger.error(null, `Cannot find any part named "{name}"`, name);
@@ -156,8 +159,8 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     }
 
     async desactivate(name: string): Promise<void> {
-        if (this._current?.name === name) {
-            await this.desactivatePart(this._current);
+        if (this._current[1]?.name === name) {
+            await this.desactivatePart(this._current[1]);
         }
     }
 
@@ -178,7 +181,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         try {
             await ApplicationPartLifecycleHooks.invoke(part, ApplicationPartLifecycleHooks.deactivated);
             if (part instanceof ApplicationPart) {
-                delete part._current;
+                part._current = [];
             }
             this._logger.info(`Part "{path}" desactivated`, part.path);
             return true;
@@ -203,7 +206,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     protected abstract createAppBuilder(name: string): IApplicationPartBuilder;
 
     [Symbol.dispose](): void {
-        delete this._current;
+        this._current = [];
         IDisposable.safeDispose(this._children.values());
         IDisposable.safeDispose(this._module);
     }

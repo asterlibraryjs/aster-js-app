@@ -27,4 +27,8 @@ export class StaticRouteSegment implements IRouteSegment {
     resolve(values: RouteValues, consume?: boolean): string | null {
         return this._segment;
     }
+
+    toString(): string {
+        return this._segment;
+    }
 }
