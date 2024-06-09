@@ -1,7 +1,8 @@
-import { IRouteSegment } from "./iroute-segment";
+import { IRouteSegment } from "./abstraction/iroute-segment";
+import { RouteValues } from "./route-data/route-values";
+
 import { WildcardRouteSegment, RelativeRouteSegment } from "./route-segments";
 import { RouteResolutionCursor } from "./route-resolution-cusor";
-import { RouteValues } from "./route-data";
 import { Path } from "./path";
 
 /** Represents a route. */

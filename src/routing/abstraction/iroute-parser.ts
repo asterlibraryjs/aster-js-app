@@ -1,5 +1,5 @@
 import { IRouteSegment } from "./iroute-segment";
-import { AppServiceId } from "../abstraction/app-service-id";
+import { AppServiceId } from "../../abstraction/app-service-id";
 
 export const IRouteParser = AppServiceId<IRouteParser>("IRouteParser");
 

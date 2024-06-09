@@ -1,6 +1,7 @@
-import { AppServiceId } from "../abstraction/app-service-id";
+import { AppServiceId } from "../../abstraction/app-service-id";
+
 import { IRoutingHandler } from "./irouting-handler";
-import { Route } from "./route";
+import { Route } from "../route";
 
 export const IRoutingTable = AppServiceId("IRoutingTable");
 

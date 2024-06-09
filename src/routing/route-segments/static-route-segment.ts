@@ -1,6 +1,6 @@
-import { IRouteSegment } from "../iroute-segment";
+import { IRouteSegment } from "../abstraction/iroute-segment";
 import { RouteResolutionCursor } from "../route-resolution-cusor";
-import { RouteValues } from "../route-data";
+import { RouteValues } from "../route-data/route-values";
 
 
 export class StaticRouteSegment implements IRouteSegment {

@@ -1,7 +1,8 @@
-import { IRouteSegment } from "../iroute-segment";
+import { IRouteSegment } from "../abstraction/iroute-segment";
+import { RouteValues } from "../route-data/route-values";
+
 import { RouteResolutionCursor } from "../route-resolution-cusor";
 import { RoutingConstants } from "../routing-constants";
-import { RouteValues } from "../route-data";
 
 export class RelativeRouteSegment implements IRouteSegment {
 

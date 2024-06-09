@@ -1,5 +1,5 @@
 import { cacheResult } from "@aster-js/decorators";
-import { IRouteSegment } from "../iroute-segment";
+import { IRouteSegment } from "../abstraction/iroute-segment";
 import { RouteResolutionCursor } from "../route-resolution-cusor";
 import { RouteValue, RouteValues } from "../route-data";
 import { IUrlValueConverter } from "../url-value-converter/iurl-value-converter";

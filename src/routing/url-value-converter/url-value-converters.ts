@@ -1,4 +1,4 @@
-import type { RouteValue } from "../route-data";
+import type { RouteValue } from "../route-data/route-values";
 import type { IUrlValueConverter } from "./iurl-value-converter";
 
 export class UrlStringValueConverter implements IUrlValueConverter {

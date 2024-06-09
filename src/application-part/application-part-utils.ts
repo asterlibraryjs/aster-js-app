@@ -1,7 +1,8 @@
 import { ServiceIdentity } from "@aster-js/ioc";
 import { asserts } from "@aster-js/core";
 import { IApplicationPart } from "../abstraction";
-import { IPartRouteData, Route } from "../routing";
+import { Route } from "../routing/route";
+import { IPartRouteData } from "../routing/abstraction/ipart-route-data";
 
 export type ApplicationPartOptions = {
     readonly includeSelf?: boolean;

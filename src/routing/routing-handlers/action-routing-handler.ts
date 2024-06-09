@@ -1,8 +1,11 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { IRoutingHandler } from "../irouting-handler";
+
+import { IApplicationPart } from "../../abstraction/iapplication-part";
+
+import { IRoutingHandler } from "../abstraction/irouting-handler";
+
 import { RoutingInvocationContext } from "../routing-invocation-context";
-import { IApplicationPart } from "../../abstraction";
-import { RouteData } from "../route-data";
+import { RouteData } from "../route-data/route-data";
 
 export type RouterAction = (ctx: RoutingInvocationContext) => Promise<void> | void;
 
