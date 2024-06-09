@@ -1,7 +1,7 @@
 import { ServiceContract } from "@aster-js/ioc";
 import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 
-import { IRouter } from "../irouter";
+import { IRouter } from "../abstraction/irouter";
 
 @ServiceContract(IApplicationPartLifecycle)
 export class DefaultNavigationHandler {

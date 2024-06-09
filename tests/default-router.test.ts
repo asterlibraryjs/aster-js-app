@@ -1,8 +1,6 @@
 import { assert } from "chai";
 import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
-import { IContainerRouteData } from "../src/routing/icontainer-route-data";
-import { Query } from "@aster-js/iterators";
-import { IRouteData } from "../src/routing/iroute-data";
+import { IRouteData, IContainerRouteData } from "../src/routing/abstraction";
 
 describe("DefaultRouter", () => {
 

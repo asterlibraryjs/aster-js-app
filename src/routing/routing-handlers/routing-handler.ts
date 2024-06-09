@@ -1,6 +1,7 @@
-import { IRoutingHandler } from "../irouting-handler";
-import { RouteData } from "../route-data";
-import { IApplicationPart } from "../../abstraction";
+import { IApplicationPart } from "../../abstraction/iapplication-part";
+
+import { IRoutingHandler } from "../abstraction/irouting-handler";
+import { RouteData } from "../route-data/route-data";
 
 export function RouteTemplate(path: string): ClassDecorator {
     return function (target: any) {

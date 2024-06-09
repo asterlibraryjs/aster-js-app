@@ -1,9 +1,8 @@
-import { ServiceIdentifier } from "@aster-js/ioc";
-
+import { AppServiceId } from "../../abstraction/app-service-id";
 import { IUrlValueConverter } from "./iurl-value-converter";
 import { AnySegmentArguments } from "../segment-arguments";
 
-export const IUrlValueConverterFactory = ServiceIdentifier<IUrlValueConverterFactory>({ name: "IUrlValueConverterFactory", namespace: "@aster-js/app", unique: true });
+export const IUrlValueConverterFactory = AppServiceId<IUrlValueConverterFactory>("IUrlValueConverterFactory");
 
 export interface IUrlValueConverterFactory {
     getDefaultConverter(): IUrlValueConverter;

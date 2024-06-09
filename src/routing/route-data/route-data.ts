@@ -4,14 +4,18 @@ import { SearchValues } from "./search-values";
 
 /** Represents all values extracted from the url */
 export type RouteData = {
+    readonly path: string;
     readonly route: Route;
     readonly values: RouteValues;
     readonly query: SearchValues;
 }
 
 export namespace RouteData {
-    export function create(route: Route, defaultRouteValues: RouteValues, routeValues: RouteValues, searchValues: SearchValues): RouteData {
-        const mergedValues = {...defaultRouteValues, ...routeValues};
-         return  { route, values: mergedValues, query: searchValues };
+
+    export const empty = Object.freeze<RouteData>({ path: "", route: Route.empty, values: {}, query: {} });
+
+    export function create(path: string, route: Route, defaultRouteValues: RouteValues, routeValues: RouteValues, searchValues: SearchValues): RouteData {
+        const mergedValues = { ...defaultRouteValues, ...routeValues };
+        return { path, route, values: mergedValues, query: searchValues };
     }
 }

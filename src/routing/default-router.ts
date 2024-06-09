@@ -1,26 +1,23 @@
 import { ILogger, Many, ServiceContract, findRootService } from "@aster-js/ioc";
 import { Query } from "@aster-js/iterators";
-import { EventEmitter, IEvent } from "@aster-js/events";
 
 import { IApplicationPart } from "../abstraction/iapplication-part";
+import { ApplicationPartUtils } from "../application-part/application-part-utils";
 
-import { IRouter } from "./irouter";
-import { IRoutingHandler } from "./irouting-handler";
+import { IRoutingHandlerInvoker } from "./abstraction/irouting-handler-invoker";
+import { IRoutingTable } from "./abstraction/irouting-table";
+import { IRoutingHandler } from "./abstraction/irouting-handler";
+import { IRouter } from "./abstraction/irouter";
+
 import { RouteResolutionCursor } from "./route-resolution-cusor";
 import { SearchValues, RouteValues, RouteData } from "./route-data";
 import { RoutingConstants } from "./routing-constants";
 import { Route } from "./route";
 import { Path } from "./path";
-import { IRoutingHandlerInvoker } from "./irouting-handler-invoker";
-import { IRoutingTable } from "./irouting-table";
-import { ApplicationPartUtils } from "../application-part/application-part-utils";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
-    private readonly _onDidEvaluate: EventEmitter<[string, Route, RouteValues, SearchValues]> = new EventEmitter();
     private _current?: [Path, SearchValues];
-
-    get onDidEvaluate(): IEvent<[string, Route, RouteValues, SearchValues]> { return this._onDidEvaluate.event; }
 
     constructor(
         @IRoutingTable private readonly _routingTable: IRoutingTable,
@@ -115,9 +112,7 @@ export class DefaultRouter implements IRouter {
 
     private async invokeHandler(route: Route, handler: IRoutingHandler, ctx: RouteResolutionCursor, values: RouteValues, query: SearchValues): Promise<void> {
         const [path, localValues] = route.getRouteValues(ctx);
-        const routeData = RouteData.create(route, values, localValues, query);
-
-        this._onDidEvaluate.emit(path, route, routeData.values, routeData.query);
+        const routeData = RouteData.create(path, route, values, localValues, query);
 
         await this._handlerInvoker.invoke(handler, ctx, routeData);
 

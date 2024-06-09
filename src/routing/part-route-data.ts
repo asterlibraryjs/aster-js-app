@@ -1,17 +1,12 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { Route } from "./route";
-import { SearchValues, RouteValues } from "./route-data";
-import { IApplicationPart } from "../abstraction";
-import { IRouteData } from "./iroute-data";
-import { IContainerRouteData } from "./icontainer-route-data";
-import { AppServiceId } from "../abstraction/app-service-id";
 
-/**
- * Service id and store for route data and query data result of navigation for the part itself.
- *
- * To get current route data (route data registered by current app route declarations), use IContainerRouteData service.
- */
-export const IPartRouteData = AppServiceId<IRouteData>("IPartRouteData");
+import { IApplicationPart } from "../abstraction/iapplication-part";
+
+import { IRouteData } from "./abstraction/iroute-data";
+import { IContainerRouteData } from "./abstraction/icontainer-route-data";
+
+import { SearchValues, RouteValues, IPartRouteData } from "./route-data";
+import { Route } from "./route";
 
 @ServiceContract(IPartRouteData)
 export class PartRouteData implements IRouteData {

@@ -1,4 +1,4 @@
-import { RouteValue } from "../route-data";
+import { RouteValue } from "../route-data/route-values";
 
 export interface IUrlValueConverter {
     canConvert(value: string): boolean;

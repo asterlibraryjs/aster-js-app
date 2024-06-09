@@ -1,6 +1,6 @@
-import { ServiceIdentifier } from "@aster-js/ioc";
+import { AppServiceId } from "../abstraction/app-service-id";
 
-export const RoutingOptions = ServiceIdentifier<RoutingOptions>({ name: "RoutingOptions", namespace: "@aster-js/app", unique: true });
+export const RoutingOptions = AppServiceId<RoutingOptions>("RoutingOptions");
 
 /**
  * Options to configure routing services.
@@ -18,9 +18,16 @@ export type RoutingOptions = {
      * Default is true.
      */
     readonly assignLocationForUnhandled: boolean;
+    /**
+     * The route name used to store part route data.
+     *
+     * Default is "/{part}/".
+     */
+    readonly partRouteValueName: string
 };
 
 export const defaultRoutingOptions: RoutingOptions = {
     linkTagSelectors: "a",
-    assignLocationForUnhandled: true
+    assignLocationForUnhandled: true,
+    partRouteValueName: "part"
 }

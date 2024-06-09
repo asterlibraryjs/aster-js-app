@@ -1,14 +1,16 @@
-import { IRouteParser } from "./iroute-parser";
-import { IRouteSegment } from "./iroute-segment";
-import { Path } from "./path";
+import { ServiceContract } from "@aster-js/ioc";
+import { asserts } from "@aster-js/core";
+
+import { IRouteParser } from "./abstraction/iroute-parser";
+import { IRouteSegment } from "./abstraction/iroute-segment";
+import { ValueRouteSegment } from "./route-segments/value-route-segment";
+import { IUrlValueValidatorFactory } from "./url-value-validator/iurl-value-validator";
+import { RouteValue } from "./route-data/route-values";
+
 import { WildcardRouteSegment, RelativeRouteSegment, StaticRouteSegment } from "./route-segments";
 import { IUrlValueConverterFactory } from "./url-value-converter";
-import { ValueRouteSegment } from "./route-segments/value-route-segment";
-import { ServiceContract } from "@aster-js/ioc";
-import { RouteValue } from "./route-data";
-import { asserts } from "@aster-js/core";
-import { AnySegmentArguments, SegmentArguments } from "./segment-arguments";
-import { IUrlValueValidatorFactory } from "./url-value-validator/iurl-value-validator";
+import { AnySegmentArguments } from "./segment-arguments";
+import { Path } from "./path";
 
 const ASSIGN_CHAR = ":";
 const NULLABLE_CHAR = "?";

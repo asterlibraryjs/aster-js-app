@@ -1,7 +1,7 @@
-import { ServiceIdentifier } from "@aster-js/ioc";
+import { AppServiceId } from "../../abstraction/app-service-id";
 import { AnySegmentArguments } from "../segment-arguments";
 
-export const IUrlValueValidatorFactory = ServiceIdentifier<IUrlValueValidatorFactory>({ name: "IUrlValueValidatorFactory", namespace: "@aster-js/app", unique: true });
+export const IUrlValueValidatorFactory = AppServiceId<IUrlValueValidatorFactory>("IUrlValueValidatorFactory");
 
 export interface IUrlValueValidatorFactory {
     create(args: AnySegmentArguments): IUrlValueValidator | null;

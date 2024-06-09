@@ -1,18 +1,11 @@
-import { IEvent } from "@aster-js/events";
-
-import { SearchValues, RouteValues } from "./route-data";
-import { RouteResolutionCursor } from "./route-resolution-cusor";
-import { IRoutingHandler } from "./irouting-handler";
-import { Route } from "./route";
-import { AppServiceId } from "../abstraction/app-service-id";
+import { RouteValues } from "../route-data/route-values";
+import { AppServiceId } from "../../abstraction/app-service-id";
 
 /**
  * Service Id and implementation for the service in charge of handling the application routing
  */
 export const IRouter = AppServiceId<IRouter>("IRouter");
 export interface IRouter {
-
-    readonly onDidEvaluate: IEvent<[string, Route, RouteValues, SearchValues]>;
     /**
      * Evaluate provided path in current application
      * @param path Path to evaluate
@@ -25,5 +18,5 @@ export interface IRouter {
      * @param values Route values inherited
      * @param query Query values
      */
-    handle(ctx: RouteResolutionCursor, values: RouteValues, query: SearchValues): Promise<boolean>;
+    // handle(ctx: RouteResolutionCursor, values: RouteValues, query: SearchValues): Promise<boolean>;
 }

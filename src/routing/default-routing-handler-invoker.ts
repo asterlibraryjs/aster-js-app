@@ -1,16 +1,20 @@
-import { ILogger, ServiceContract } from "@aster-js/ioc";
+import { ILogger, Many, ServiceContract } from "@aster-js/ioc";
 
-import { IRoutingHandlerInvoker } from "./irouting-handler-invoker";
-import { IRoutingHandler } from "./irouting-handler";
+import { IApplicationPart } from "../abstraction/iapplication-part";
+
+import { IRoutingHandlerInvoker } from "./abstraction/irouting-handler-invoker";
+import { IRoutingHandler } from "./abstraction/irouting-handler";
+import { IRoutingObserver } from "./abstraction/irouting-observer";
+import { RouteData } from "./route-data/route-data";
+
 import { RouteResolutionCursor } from "./route-resolution-cusor";
-import { IApplicationPart } from "../abstraction";
-import { RouteData } from "./route-data";
 
 @ServiceContract(IRoutingHandlerInvoker)
 export class DefaultRoutingHandlerInvoker implements IRoutingHandlerInvoker {
 
     constructor(
         @IApplicationPart private readonly _application: IApplicationPart,
+        @Many(IRoutingObserver) private readonly _observers: IRoutingObserver[],
         @ILogger private readonly _logger: ILogger
     ) { }
 
@@ -18,9 +22,12 @@ export class DefaultRoutingHandlerInvoker implements IRoutingHandlerInvoker {
         this.onDidUrlMatch(handler, sourcePath, relativePath, routeData);
 
         try {
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidBegin(handler, routeData, this._application)));
             await handler.handle(routeData, this._application);
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidComplete(handler, routeData, this._application)));
         }
         catch (err) {
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidFail(handler, routeData, this._application)));
             this.onHandlerError(err, handler, sourcePath, relativePath, routeData);
         }
     }
