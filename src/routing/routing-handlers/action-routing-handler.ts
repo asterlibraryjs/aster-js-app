@@ -17,8 +17,8 @@ export class ActionRoutingHandler implements IRoutingHandler {
         private readonly _action: RouterAction
     ) { }
 
-    handle(data: RouteData, app: IApplicationPart): Promise<void> {
-        const result = this._action({ data, app, handler: this });
+    handle(ctx: RoutingInvocationContext): Promise<void> {
+        const result = this._action(ctx);
         if (result instanceof Promise) return result;
         return Promise.resolve();
     }

@@ -1,7 +1,6 @@
 import { Func } from "@aster-js/core"
 import { ServiceIdentifier } from "@aster-js/ioc";
-import { IApplicationPart } from "../abstraction";
-import { IRoutingHandler, RouteData } from "../routing";
+import { IRoutingHandler, RouteData, RoutingInvocationContext } from "../routing";
 import { ControllerRoutingCallbackArgsTag } from "./controller-routing-handler-tag";
 import type { IRoutingResult } from "./irouting-result";
 
@@ -16,7 +15,7 @@ export class ControllerRoutingHandler implements IRoutingHandler {
         private readonly _callback: Func<any[], Promise<IRoutingResult> | IRoutingResult>
     ) { }
 
-    async handle(data: RouteData, app: IApplicationPart): Promise<void> {
+    async handle({ data, app }: RoutingInvocationContext): Promise<void> {
         const controller = app.services.get(this._target, true);
 
         const proto = Object.getPrototypeOf(controller);

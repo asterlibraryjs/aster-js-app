@@ -15,19 +15,23 @@ export class DefaultNavigationService implements INavigationService {
     ) { }
 
     async navigate(relativeUrl: string, replace: boolean = false): Promise<void> {
-        const isRelative = relativeUrl.startsWith(RoutingConstants.RELATIVE_CHAR);
+        if (await this._router.eval(relativeUrl)) {
+            const isRelative = relativeUrl.startsWith(RoutingConstants.RELATIVE_CHAR);
 
-        const coercedUrl = isRelative ? RoutingConstants.RELATIVE_URL_CHAR + relativeUrl.substring(1) : relativeUrl;
-        const baseAddress = this.getBaseAddress(isRelative);
-        const url = new URL(coercedUrl, baseAddress);
+            const coercedUrl = isRelative ? RoutingConstants.RELATIVE_URL_CHAR + relativeUrl.substring(1) : relativeUrl;
+            const baseAddress = this.getBaseAddress(isRelative);
+            const url = new URL(coercedUrl, baseAddress);
 
-        if (replace) {
-            history.replaceState({}, "", url);
+            if (replace) {
+                history.replaceState({}, "", url);
+            }
+            else {
+                history.pushState({}, "", url);
+            }
         }
         else {
-            history.pushState({}, "", url);
+            throw new Error(`The url "${relativeUrl}" is not a valid route`);
         }
-        await this._router.eval(relativeUrl);
     }
 
     private getBaseAddress(isRelative: boolean): URL {

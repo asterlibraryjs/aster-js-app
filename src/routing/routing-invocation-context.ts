@@ -5,6 +5,10 @@ import { RouteData } from "./route-data/route-data";
 
 /** Contains informations about the invocation context of a route being handled by the router */
 export type RoutingInvocationContext = {
+    /** The source path evaluated by the router */
+    readonly sourcePath: string;
+    /** The parent invocation context */
+    readonly parent?: RoutingInvocationContext;
     /** The handler that will handle the route */
     readonly handler: IRoutingHandler;
     /** The route data extracted from the url */

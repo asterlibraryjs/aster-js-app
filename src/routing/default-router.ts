@@ -1,4 +1,4 @@
-import { ILogger, Many, ServiceContract, findRootService } from "@aster-js/ioc";
+import { ILogger, ServiceContract, findRootService } from "@aster-js/ioc";
 import { Query } from "@aster-js/iterators";
 
 import { IApplicationPart } from "../abstraction/iapplication-part";
@@ -14,6 +14,7 @@ import { SearchValues, RouteValues, RouteData } from "./route-data";
 import { RoutingConstants } from "./routing-constants";
 import { Route } from "./route";
 import { Path } from "./path";
+import { RoutingInvocationContext } from "./routing-invocation-context";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
@@ -78,20 +79,25 @@ export class DefaultRouter implements IRouter {
         return this.handleCore(ctx, defaults, search);
     }
 
-    async handle(ctx: RouteResolutionCursor, values: RouteValues, search: SearchValues): Promise<boolean> {
-        ctx = new RouteResolutionCursor(ctx, true);
-        return this.handleCore(ctx, values, search);
+    async handle(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<boolean> {
+        cursor = new RouteResolutionCursor(cursor, true);
+        return this.handleCore(cursor, ctx.data.values, ctx.data.query, ctx);
     }
 
-    async handleCore(ctx: RouteResolutionCursor, values: RouteValues, search: SearchValues): Promise<boolean> {
-        const routeHandler = await this.resolveHandler(ctx);
+    async handleCore(cursor: RouteResolutionCursor, values: RouteValues, search: SearchValues, parent?: RoutingInvocationContext): Promise<boolean> {
+        const routeHandler = await this.resolveHandler(cursor);
 
         if (!routeHandler) {
-            this._logger.warn(null, `No match found for the remaining route path: {relativeUrl}`, ctx.remainingPath, ...this._routingTable.getPaths());
+            this._logger.warn(null, `No match found for the remaining route path: {relativeUrl}`, cursor.remainingPath, ...this._routingTable.getPaths());
             return false;
         }
 
-        await this.invokeHandler(...routeHandler, ctx, values, search);
+        const [route, handler] = routeHandler;
+
+        const [path, localValues] = route.getRouteValues(cursor);
+        const data = RouteData.create(path, route, values, localValues, search);
+        const ctx: RoutingInvocationContext = { data, handler, sourcePath: cursor.sourcePath, parent, app: this._application };
+        await this.invokeHandler(cursor, ctx);
         return true;
     }
 
@@ -110,34 +116,32 @@ export class DefaultRouter implements IRouter {
             .findFirst(([route]) => route.match(ctx));
     }
 
-    private async invokeHandler(route: Route, handler: IRoutingHandler, ctx: RouteResolutionCursor, values: RouteValues, query: SearchValues): Promise<void> {
-        const [path, localValues] = route.getRouteValues(ctx);
-        const routeData = RouteData.create(path, route, values, localValues, query);
+    private async invokeHandler(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
 
-        await this._handlerInvoker.invoke(handler, ctx, routeData);
+        await this._handlerInvoker.invoke(cursor, ctx);
 
         const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
         if (activeChildren.length !== 0) {
             let flag = true;
             for (const [activeRoute, activePart, child] of activeChildren) {
-                if (activeRoute !== route) {
+                if (activeRoute !== ctx.data.route) {
                     this._application.desactivate(activePart.name);
                 }
-                else if (flag && await child.handle(ctx, routeData.values, query)) {
+                else if (flag && await child.handle(cursor, ctx)) {
                     flag = false;
-                    this._logger.debug("Child router handled the remaining route {path}", ctx.toString());
+                    this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
                 }
                 else if (this._application.activeChild === activePart) {
                     this._application.desactivate(activePart.name);
                 }
             }
 
-            if (flag && ctx.remaining !== 0) {
-                this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", ctx.remainingPath);
+            if (flag && cursor.remaining !== 0) {
+                this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", cursor.remainingPath);
             }
         }
-        else if (ctx.remaining !== 0) {
-            this._logger.warn(null, "No child to handle the remaining route path: {relativeUrl}", ctx.remainingPath);
+        else if (cursor.remaining !== 0) {
+            this._logger.warn(null, "No child to handle the remaining route path: {relativeUrl}", cursor.remainingPath);
         }
         else {
             this._logger.debug("Routing completed successfully.");

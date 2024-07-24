@@ -8,6 +8,7 @@ import { IRoutingObserver } from "./abstraction/irouting-observer";
 import { RouteData } from "./route-data/route-data";
 
 import { RouteResolutionCursor } from "./route-resolution-cusor";
+import { RoutingInvocationContext } from "./routing-invocation-context";
 
 @ServiceContract(IRoutingHandlerInvoker)
 export class DefaultRoutingHandlerInvoker implements IRoutingHandlerInvoker {
@@ -18,35 +19,47 @@ export class DefaultRoutingHandlerInvoker implements IRoutingHandlerInvoker {
         @ILogger private readonly _logger: ILogger
     ) { }
 
-    async invoke(handler: IRoutingHandler, { sourcePath, remainingPath: relativePath }: RouteResolutionCursor, routeData: RouteData): Promise<void> {
-        this.onDidUrlMatch(handler, sourcePath, relativePath, routeData);
+    async invoke(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
+        this.onDidUrlMatch(cursor, ctx);
 
         try {
-            await Promise.allSettled(this._observers.map(x => x.onRoutingDidBegin(handler, routeData, this._application)));
-            await handler.handle(routeData, this._application);
-            await Promise.allSettled(this._observers.map(x => x.onRoutingDidComplete(handler, routeData, this._application)));
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidBegin(ctx)));
+            await ctx.handler.handle(ctx);
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidComplete(ctx)));
         }
         catch (err) {
-            await Promise.allSettled(this._observers.map(x => x.onRoutingDidFail(handler, routeData, this._application)));
-            this.onHandlerError(err, handler, sourcePath, relativePath, routeData);
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidFail(ctx)));
+            this.onHandlerError(err, cursor, ctx);
         }
     }
 
-    private onDidUrlMatch(handler: IRoutingHandler, sourcePath: string, relativePath: string, routeData: RouteData): void {
-        if (sourcePath !== relativePath) {
-            this._logger.info(`Routing match relative path "{relativePath}" in path "{path}" with route "{routePath}"`, relativePath, sourcePath, handler.path, routeData);
+    private onDidUrlMatch(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): void {
+        if (cursor.sourcePath !== cursor.remainingPath) {
+            this._logger.info(
+                `Routing match relative path "{relativePath}" in path "{path}" with route "{routePath}"`,
+                cursor.remainingPath, cursor.sourcePath, ctx.handler.path, ctx.data
+            );
         }
         else {
-            this._logger.info(`Routing match path "{path}" with route "{routePath}"`, sourcePath, handler.path, routeData);
+            this._logger.info(
+                `Routing match path "{path}" with route "{routePath}"`,
+                cursor.sourcePath, ctx.handler.path, ctx.data
+            );
         }
     }
 
-    private onHandlerError(err: unknown, handler: IRoutingHandler, sourcePath: string, relativePath: string, routeData: RouteData): void {
-        if (sourcePath !== relativePath) {
-            this._logger.error(err, `Error handled during route handler invocation on relative path "{relativePath}" in path "{path}" with route "{routePath}"`, relativePath, sourcePath, handler.path, routeData);
+    private onHandlerError(err: unknown, cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): void {
+        if (cursor.sourcePath !== cursor.remainingPath) {
+            this._logger.error(err,
+                `Error handled during route handler invocation on relative path "{relativePath}" in path "{path}" with route "{routePath}"`,
+                cursor.remainingPath, cursor.sourcePath, ctx.handler.path, ctx.data
+            );
         }
         else {
-            this._logger.error(err, `Error handled during route handler invocation on path "{path}" with route "{routePath}"`, sourcePath, handler.path, routeData);
+            this._logger.error(err,
+                `Error handled during route handler invocation on path "{path}" with route "{routePath}"`,
+                cursor.sourcePath, ctx.handler.path, ctx.data
+            );
         }
     }
 }

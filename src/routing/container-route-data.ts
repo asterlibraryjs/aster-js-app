@@ -10,6 +10,7 @@ import { RouteData } from "./route-data/route-data";
 
 import { IContainerRouteData, IRoutingHandler } from "./abstraction";
 import { Route } from "./route";
+import { RoutingInvocationContext } from "./routing-invocation-context";
 
 @ServiceContract(IContainerRouteData)
 export class ContainerRouteData implements IContainerRouteData, IRoutingObserver {
@@ -29,18 +30,18 @@ export class ContainerRouteData implements IContainerRouteData, IRoutingObserver
         this._current = RouteData.empty;
     }
 
-    onRoutingDidBegin(handler: IRoutingHandler, routeData: RouteData, application: IApplicationPart): Promise<void> {
+    onRoutingDidBegin({ data }: RoutingInvocationContext): Promise<void> {
         this._previous = this._current;
-        this._current = routeData;
+        this._current = data;
         return Promise.resolve();
     }
 
-    onRoutingDidComplete(handler: IRoutingHandler, routeData: RouteData, application: IApplicationPart): Promise<void> {
+    onRoutingDidComplete(ctx: RoutingInvocationContext): Promise<void> {
         this._previous = RouteData.empty;
         return Promise.resolve();
     }
 
-    onRoutingDidFail(handler: IRoutingHandler, routeData: RouteData, application: IApplicationPart): Promise<void> {
+    onRoutingDidFail(ctx: RoutingInvocationContext): Promise<void> {
         this._current = this._previous;
         return Promise.resolve();
     }

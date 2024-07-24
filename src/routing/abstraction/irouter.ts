@@ -12,11 +12,4 @@ export interface IRouter {
      * @param defaults Default route values
      */
     eval(path: string, defaults?: RouteValues): Promise<boolean>;
-    /**
-     * Handle part of a path evaluation. Used internally to cascade path parts into child apps
-     * @param ctx Context use to resolve routes
-     * @param values Route values inherited
-     * @param query Query values
-     */
-    // handle(ctx: RouteResolutionCursor, values: RouteValues, query: SearchValues): Promise<boolean>;
 }
