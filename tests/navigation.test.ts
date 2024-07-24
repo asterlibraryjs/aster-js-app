@@ -92,7 +92,7 @@ describe("NavigationService", () => {
                 x.addPart("/:part<index>?index", _ => { callCount++; });
                 x.addPart("/:part<account>", _ => { callCount++; });
             });
-            builder.addPart("/admin", _ => { });
+            builder.addPart("/:part<admin>", _ => { });
         });
 
         assert.isDefined(app.activeChild);
@@ -101,7 +101,7 @@ describe("NavigationService", () => {
 
         const svc = app.services.get(INavigationService, true);
 
-        await svc.navigate("~/admin");
+        await svc.navigate("/admin");
 
         assert.isDefined(app.activeChild);
         assert.isUndefined(app.activeChild!.activeChild);
