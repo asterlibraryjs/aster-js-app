@@ -8,5 +8,5 @@ export interface IRoutingObserver {
 
     onRoutingDidComplete(ctx: RoutingInvocationContext): Promise<void>;
 
-    onRoutingDidFail(ctx: RoutingInvocationContext): Promise<void>;
+    onRoutingDidFail(err: unknown, ctx: RoutingInvocationContext): Promise<void>;
 }

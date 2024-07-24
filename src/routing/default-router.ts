@@ -97,8 +97,7 @@ export class DefaultRouter implements IRouter {
         const [path, localValues] = route.getRouteValues(cursor);
         const data = RouteData.create(path, route, values, localValues, search);
         const ctx: RoutingInvocationContext = { data, handler, sourcePath: cursor.sourcePath, parent, app: this._application };
-        await this.invokeHandler(cursor, ctx);
-        return true;
+        return await this.invokeHandler(cursor, ctx);
     }
 
     /**
@@ -116,35 +115,41 @@ export class DefaultRouter implements IRouter {
             .findFirst(([route]) => route.match(ctx));
     }
 
-    private async invokeHandler(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
+    private async invokeHandler(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<boolean> {
+        if (await this._handlerInvoker.invoke(cursor, ctx)) {
 
-        await this._handlerInvoker.invoke(cursor, ctx);
+            const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
+            if (activeChildren.length !== 0) {
+                let flag = true;
+                for (const [activeRoute, activePart, child] of activeChildren) {
+                    if (activeRoute !== ctx.data.route) {
+                        this._application.desactivate(activePart.name);
+                    }
+                    else if (flag && await child.handle(cursor, ctx)) {
+                        flag = false;
+                        this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
+                    }
+                    else if (this._application.activeChild === activePart) {
+                        this._application.desactivate(activePart.name);
+                    }
+                }
 
-        const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
-        if (activeChildren.length !== 0) {
-            let flag = true;
-            for (const [activeRoute, activePart, child] of activeChildren) {
-                if (activeRoute !== ctx.data.route) {
-                    this._application.desactivate(activePart.name);
+                if (flag && cursor.remaining !== 0) {
+                    this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", cursor.remainingPath);
                 }
-                else if (flag && await child.handle(cursor, ctx)) {
-                    flag = false;
-                    this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
-                }
-                else if (this._application.activeChild === activePart) {
-                    this._application.desactivate(activePart.name);
-                }
+
+                return true;
             }
 
-            if (flag && cursor.remaining !== 0) {
-                this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", cursor.remainingPath);
+            if (cursor.remaining !== 0) {
+                this._logger.warn(null, "No child to handle the remaining route path: {relativeUrl}", cursor.remainingPath);
+                return true;
             }
-        }
-        else if (cursor.remaining !== 0) {
-            this._logger.warn(null, "No child to handle the remaining route path: {relativeUrl}", cursor.remainingPath);
-        }
-        else {
+
             this._logger.debug("Routing completed successfully.");
+
+            return true;
         }
+        return false;
     }
 }

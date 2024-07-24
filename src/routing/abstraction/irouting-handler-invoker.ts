@@ -5,5 +5,5 @@ import { RoutingInvocationContext } from "../routing-invocation-context";
 
 export const IRoutingHandlerInvoker = AppServiceId<IRoutingHandlerInvoker>("IRoutingHandlerInvoker");
 export interface IRoutingHandlerInvoker {
-    invoke(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void>;
+    invoke(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<boolean>;
 }

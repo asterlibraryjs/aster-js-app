@@ -3,9 +3,7 @@ import { ILogger, Many, ServiceContract } from "@aster-js/ioc";
 import { IApplicationPart } from "../abstraction/iapplication-part";
 
 import { IRoutingHandlerInvoker } from "./abstraction/irouting-handler-invoker";
-import { IRoutingHandler } from "./abstraction/irouting-handler";
 import { IRoutingObserver } from "./abstraction/irouting-observer";
-import { RouteData } from "./route-data/route-data";
 
 import { RouteResolutionCursor } from "./route-resolution-cusor";
 import { RoutingInvocationContext } from "./routing-invocation-context";
@@ -19,17 +17,19 @@ export class DefaultRoutingHandlerInvoker implements IRoutingHandlerInvoker {
         @ILogger private readonly _logger: ILogger
     ) { }
 
-    async invoke(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
+    async invoke(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<boolean> {
         this.onDidUrlMatch(cursor, ctx);
 
         try {
             await Promise.allSettled(this._observers.map(x => x.onRoutingDidBegin(ctx)));
             await ctx.handler.handle(ctx);
             await Promise.allSettled(this._observers.map(x => x.onRoutingDidComplete(ctx)));
+            return true;
         }
         catch (err) {
-            await Promise.allSettled(this._observers.map(x => x.onRoutingDidFail(ctx)));
+            await Promise.allSettled(this._observers.map(x => x.onRoutingDidFail(err, ctx)));
             this.onHandlerError(err, cursor, ctx);
+            return false;
         }
     }
 
