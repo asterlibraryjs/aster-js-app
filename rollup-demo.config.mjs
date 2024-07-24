@@ -18,5 +18,21 @@ export default [
             multiEntry(),
             sourcemap()
         ]
+    },
+    {
+        input: ".bin/samples/debug/main.js",
+        output: [
+            {
+                file: "samples/debug/debug.min.js",
+                format: "es",
+                compact: true,
+                sourcemap: true
+            }
+        ],
+        plugins: [
+            resolve(),
+            multiEntry(),
+            sourcemap()
+        ]
     }
 ];

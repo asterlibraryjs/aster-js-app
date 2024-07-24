@@ -1,9 +1,8 @@
 import { ServiceContract, ServiceIdentifier } from "@aster-js/ioc";
 
-import { IApplicationPart } from "../../abstraction/iapplication-part";
-
 import { IRoutingHandler } from "../abstraction/irouting-handler";
 import { RouteData } from "../route-data/route-data";
+import { RoutingInvocationContext } from "../routing-invocation-context";
 
 export type ServiceRouterAction<T = any> = (service: T, data: RouteData) => Promise<void> | void;
 
@@ -15,7 +14,7 @@ export class ServiceRoutingHandler<T = any> implements IRoutingHandler {
         private readonly _action: ServiceRouterAction<T>
     ) { }
 
-    handle(data: RouteData, app: IApplicationPart): Promise<void> {
+    handle({ data, app }: RoutingInvocationContext): Promise<void> {
         const service = app.services.get(this._serviceId, true);
         const result = this._action(service, data);
         if (result instanceof Promise) return result;

@@ -1,6 +1,7 @@
 import { IApplicationPart } from "../../abstraction/iapplication-part";
 import { AppServiceId } from "../../abstraction/app-service-id";
 import { RouteData } from "./../route-data/route-data";
+import { RoutingInvocationContext } from "../routing-invocation-context";
 
 export const IRoutingHandler = AppServiceId<IRoutingHandler>("IRoutingHandler");
 
@@ -13,8 +14,7 @@ export interface IRoutingHandler {
     readonly path: string;
     /**
      * Method called when the  route match
-     * @param data Route data that contains route values and query values
-     * @param app Application that handle the route
+     * @param ctx Invocation context
      */
-    handle(data: RouteData, app: IApplicationPart): Promise<void>;
+    handle(ctx: RoutingInvocationContext): Promise<void>;
 }
