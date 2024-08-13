@@ -28,6 +28,8 @@ export class DefaultRouter implements IRouter {
     ) { }
 
     async eval(url: string, defaults: RouteValues = {}): Promise<boolean> {
+        url = Path.coerce(url);
+
         this._logger.debug(`Evaluating route "{url}"`, url);
         try {
             // Relative path
