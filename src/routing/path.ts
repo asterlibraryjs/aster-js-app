@@ -135,4 +135,9 @@ export class Path implements Iterable<string>{
     static isEmpty(path: string): boolean {
         return !path || path === SEGMENT_SEPARATOR;
     }
+
+    static coerce(path: unknown): string {
+        if (!path || typeof path !== "string") return "/";
+        return path.startsWith(RoutingConstants.LINK_RELATIVE_CHARS) ? path.substring(1) : path;
+    }
 }
