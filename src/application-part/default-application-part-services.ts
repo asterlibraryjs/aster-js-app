@@ -19,16 +19,16 @@ export function createApplicationPartModule(app: IApplicationPart, builder: IIoC
 
 function configureDefaultAppPartServices(app: IApplicationPart, services: ServiceCollection): void {
     services.addInstance(IApplicationPart, app, { scope: ServiceScope.container })
-        .addScoped(PartRouteData, { scope: ServiceScope.container })
-        .addScopedFactory(ContainerRouteDataRoutingObserverFactory, { scope: ServiceScope.container })
-        .addScoped(ContainerRouteData, { scope: ServiceScope.container })
-        .addScoped(DefaultNavigationService, { scope: ServiceScope.container })
-        .addSingleton(DefaultUrlValueConverterFactory)
-        .addSingleton(DefaultUrlValueValidatorFactory)
-        .addSingleton(DefaultRouteParser)
-        .addSingleton(DefaultRoutingTable, { scope: ServiceScope.container })
-        .addScoped(DefaultRouter, { scope: ServiceScope.container })
-        .addScoped(DefaultRoutingHandlerInvoker, { scope: ServiceScope.container });
+        .tryAddScoped(PartRouteData, { scope: ServiceScope.container })
+        .tryAddScopedFactory(ContainerRouteDataRoutingObserverFactory, { scope: ServiceScope.container })
+        .tryAddScoped(ContainerRouteData, { scope: ServiceScope.container })
+        .tryAddScoped(DefaultNavigationService, { scope: ServiceScope.container })
+        .tryAddSingleton(DefaultUrlValueConverterFactory)
+        .tryAddSingleton(DefaultUrlValueValidatorFactory)
+        .tryAddSingleton(DefaultRouteParser)
+        .tryAddSingleton(DefaultRoutingTable, { scope: ServiceScope.container })
+        .tryAddScoped(DefaultRouter, { scope: ServiceScope.container })
+        .tryAddScoped(DefaultRoutingHandlerInvoker, { scope: ServiceScope.container });
 
     for (const desc of extractImplicitLifecycleImpl(services)) {
         services.addTransient(ApplicationPartLifecycleWrapper, { baseArgs: [desc], scope: ServiceScope.container });
