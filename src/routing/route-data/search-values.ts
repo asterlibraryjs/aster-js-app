@@ -10,6 +10,9 @@ export namespace SearchValues {
         const result: Record<string, string | string[]> = {};
 
         const searchParams = new URLSearchParams(search);
+
+        if (searchParams.size === 0) return empty;
+
         for (const [key, value] of searchParams) {
             if (Reflect.has(result, key)) {
                 const current = result[key];

@@ -34,17 +34,14 @@ export class ValueRouteSegment implements IRouteSegment {
         return this._converter.canConvert(segment) && (this._validator?.validate(segment) ?? true);
     }
 
-    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): void {
         const value = ctx.shift();
         if (typeof value !== "undefined" && value !== null) {
             values[this._name] = this._converter.convert(value);
-            return String(value);
         }
-        if (this._defaultValue !== null) {
+        else if (this._defaultValue !== null) {
             values[this._name] = this._defaultValue;
-            return this.defaultValueString;
         }
-        return null;
     }
 
     resolve(values: RouteValues, consume?: boolean): string | null {
@@ -54,9 +51,11 @@ export class ValueRouteSegment implements IRouteSegment {
             return this._converter.convertBack(value);
         }
 
-        if (!this._optional || this._defaultValue === null) {
+        if (!this._optional) {
             throw new Error(`Missing value for route value "${this._name}"`);
         }
+
+        if (this._defaultValue === null) return null;
 
         return this.defaultValueString;
     }

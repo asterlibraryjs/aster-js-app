@@ -11,13 +11,12 @@ export class WildcardRouteSegment implements IRouteSegment {
 
     match(segment: string | undefined): boolean { return segment === WILDCARD_CHAR; }
 
-    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): void {
         const current = ctx.peek();
         if (current !== WILDCARD_CHAR) {
             throw new Error(`Invalid token: expected segment to be a wildcard symbol but current segment is equal to "${current}"`);
         }
         ctx.shift();
-        return null;
     }
 
     resolve(values: RouteValues, consume?: boolean): string | null {

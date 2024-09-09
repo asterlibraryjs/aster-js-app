@@ -15,13 +15,12 @@ export class StaticRouteSegment implements IRouteSegment {
         return segment === this._segment;
     }
 
-    read(ctx: RouteResolutionCursor, values: RouteValues): string | null {
+    read(ctx: RouteResolutionCursor, values: RouteValues): void {
         const current = ctx.peek();
         if (current !== this._segment) {
             throw new Error(`Invalid token: expected segment equals to "${this._segment}" but current segment is equal to "${current}"`);
         }
         ctx.shift();
-        return this._segment;
     }
 
     resolve(values: RouteValues, consume?: boolean): string | null {

@@ -50,14 +50,12 @@ export class Route implements Iterable<IRouteSegment> {
         return true;
     }
 
-    getRouteValues(ctx: RouteResolutionCursor): [path: string, values: RouteValues] {
+    getRouteValues(ctx: RouteResolutionCursor): RouteValues {
         const values: RouteValues = {};
-        const path: string[] = [];
         for (let i = 0; i < this._segments.length; i++) {
-            const consumedPath = this._segments[i].read(ctx, values);
-            if (consumedPath) path.push(consumedPath);
+            this._segments[i].read(ctx, values);
         }
-        return [Path.join(path), values];
+        return values;
     }
 
     resolve(values: RouteValues, consume?: boolean): string {
@@ -68,7 +66,8 @@ export class Route implements Iterable<IRouteSegment> {
     private *resolveSegments(values: RouteValues, consume?: boolean): Iterable<string> {
         for (const segment of this._segments) {
             const resolved = segment.resolve(values, consume);
-            if (resolved) yield resolved;
+            if (resolved === null) break
+            yield resolved;
         }
     }
 

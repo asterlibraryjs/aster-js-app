@@ -18,11 +18,10 @@ describe("StaticRouteSegment", () => {
         const segment = new StaticRouteSegment("bob");
         const cursor = new RouteResolutionCursor(["bob"], false);
 
-        const read = segment.read(cursor, {});
+        segment.read(cursor, {});
 
         assert.equal(cursor.remaining, 0, "Cursor should be empty after consuming the segment");
         assert.equal(cursor.sourcePath, "/bob/", "Source should not change after consuming the cursor");
         assert.deepEqual(cursor.remainingPath, "/", "Path should be empty after consuming the cursor");
-        assert.equal(read, "bob", "Result of the consumed path should be the segment");
     });
 })
