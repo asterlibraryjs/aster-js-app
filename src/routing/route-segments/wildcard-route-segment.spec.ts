@@ -15,11 +15,10 @@ describe("WildcardRouteSegment", () => {
     it("Should read a segment", () => {
         const cursor = new RouteResolutionCursor(["*"], false);
 
-        const read = WildcardRouteSegment.instance.read(cursor, {});
+         WildcardRouteSegment.instance.read(cursor, {});
 
         assert.equal(cursor.remaining, 0, "Cursor should be empty after consuming the segment");
         assert.equal(cursor.sourcePath, "/*/", "Source should not change after consuming the cursor");
         assert.deepEqual(cursor.remainingPath, "/", "Path should be empty after consuming the cursor");
-        assert.isNull(read, "Result of the consumed path should be null");
     });
 })

@@ -93,20 +93,60 @@ export class DefaultSettingService {
         @IDataService private readonly dataService: IDataService
     ){}
 
-    async [ApplicationPartLifecycleHooks.setup](): Promise<void> {
+    async [ApplicationPartLifecycleHooks.setup](app: IApplicationPart): Promise<void> {
         const moduleName = this.routeData["module"];
         this.settings = this.dataService.load(moduleName);
     }
-    [ApplicationPartLifecycleHooks.activated](): Promise<void> {
+    [ApplicationPartLifecycleHooks.activated](app: IApplicationPart): Promise<void> {
         return this.renderer.renderView("settings", { settings: this.settings });
     }
-    [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {
+    [ApplicationPartLifecycleHooks.deactivated](app: IApplicationPart): Promise<void> {
         return this.renderer.destroyView("settings");
     }
 }
 ```
 
 > `IPartRouteData` and `IContainerRouteData` are two way to get route data values in services. `Part` for the values that allow the part to load and `Container` for the values that match a route declared during the part loading.
+
+### Using ApplicationPartLifecycleHooks decorators
+
+From the example above, this is how to declare the same hooks using decorators:
+
+```ts
+import { IRouteData, IApplicationPart, ApplicationPartSetup, ApplicationPartActivated, ApplicationPartDeactivated } from "@aster-js/app";
+import { IRenderingService, IDataService } from "./services";
+import { Setting } from "./models";
+
+export class DefaultSettingService {
+    private settings?: Setting[];
+
+    constructor(
+        // Custom services you have to declare and create
+        @IRenderingService private readonly renderer: IRenderingService
+    ){}
+
+    @ApplicationPartSetup
+    async load(app: IApplicationPart): Promise<void> {
+        const routeData = app.services.get(IPartRouteData, true);
+        const moduleName = routeData["module"];
+
+        const dataService = app.services.get(IDataService, true);
+        this.settings = dataService.load(moduleName);
+    }
+
+    @ApplicationPartActivated
+    render(app: IApplicationPart): Promise<void> {
+        return this.renderer.renderView("settings", { settings: this.settings });
+    }
+
+    @ApplicationPartDeactivated
+    destroy(app: IApplicationPart): Promise<void> {
+        return this.renderer.destroyView("settings");
+    }
+}
+```
+
+> This example shows that you can use the `IApplicationPart` provided as parameter to retreive services.
 
 ### Nesting parts
 

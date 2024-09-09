@@ -27,7 +27,8 @@ export class HistoryNavigationHandler implements IDisposable {
     }
 
     private onNavigate(ev: PopStateEvent): void {
-        this._router.eval(this._location.href, ev.state);
+        const url = this._location.pathname + this._location.search;
+        this._router.eval(url, ev.state);
     }
 
     [ApplicationPartLifecycleHooks.deactivated](): Promise<void> {

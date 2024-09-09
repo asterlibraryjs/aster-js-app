@@ -51,8 +51,10 @@ export class HyperlinkNavigationHandler implements IDisposable {
     }
 
     private async navigate(url: URL, title: string): Promise<void> {
-        if (await this._router.eval(url.pathname)) {
-            history.pushState({}, title, url);
+        const result = await this._router.eval(url.pathname + url.search);
+        if (result.success) {
+            const stateUrl = new URL(result.relativeUrl + url.hash, location.origin);
+            history.pushState({}, title, stateUrl);
         }
         else if (!this._options.assignLocationForUnhandled) {
             location.assign(url);

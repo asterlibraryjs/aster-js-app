@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder, IRouter, SinglePageApplication } from "../src";
-import { IRouteData, IContainerRouteData } from "../src/routing/abstraction";
+import { IRouteData, IContainerRouteData, SuccessRoutingResult } from "../src/routing/abstraction";
 
 describe("DefaultRouter", () => {
 
@@ -15,7 +15,7 @@ describe("DefaultRouter", () => {
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/", {});
 
-        assert.isTrue(result, "started");
+        assert.isTrue(result.success, "started");
         assert.isTrue(called, "called");
     });
 
@@ -32,7 +32,7 @@ describe("DefaultRouter", () => {
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page?id=0", {});
 
-        assert.isTrue(result, "started");
+        assert.isTrue(result.success, "started");
         assert.isTrue(called, "called");
     });
 
@@ -47,7 +47,8 @@ describe("DefaultRouter", () => {
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
 
-        assert.isTrue(result, "started");
+        assert.isTrue(result.success, "started");
+        assert.equal((<SuccessRoutingResult>result).relativeUrl, "/page/species/view/vertebrate/");
         assert.isTrue(called, "called");
     });
 
@@ -64,7 +65,7 @@ describe("DefaultRouter", () => {
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page/species/view/vertebrate/69", {});
 
-        assert.isTrue(result, "started");
+        assert.isTrue(result.success, "started");
         assert.equal(idCaptured, 69);
     });
 
@@ -85,7 +86,8 @@ describe("DefaultRouter", () => {
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
 
-        assert.isTrue(result, "started");
+        assert.isTrue(result.success, "started");
+        assert.equal((<SuccessRoutingResult>result).relativeUrl, "/page/species/view/vertebrate/");
         assert.isTrue(called, "called");
     });
 });

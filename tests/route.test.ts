@@ -160,9 +160,8 @@ describe("Route", () => {
         const route = parse("/items/:item/:mode<get|set>/field/:field?description/:+id?");
         const ctx = RouteResolutionCursor.read("items/robots/set/field/title/55");
 
-        const [path, values] = route.getRouteValues(ctx);
+        const values = route.getRouteValues(ctx);
 
-        assert.equal(path, "/items/robots/set/field/title/55/");
         assert.deepEqual(values, { item: "robots", mode: "set", field: "title", id: 55 });
     });
 
@@ -214,7 +213,7 @@ describe("Route", () => {
 
                 assert.isTrue(isMatch, "Match route is true");
 
-                const [, routeValues] = route.getRouteValues(ctx);
+                const routeValues = route.getRouteValues(ctx);
 
                 assert.deepEqual(values, routeValues, `Values not equal \r${JSON.stringify(values)} !== ${JSON.stringify(routeValues)}`);
             });

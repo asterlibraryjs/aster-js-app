@@ -19,7 +19,8 @@ export class DefaultNavigationHandler {
     }
 
     async [ApplicationPartLifecycleHooks.activated](): Promise<void> {
-        await this._self._router.eval(this._location.href);
+        const url = this._location.pathname + this._location.search;
+        await this._self._router.eval(url);
         return Promise.resolve();
     }
 

@@ -8,7 +8,7 @@ describe("NavigationService", () => {
     });
 
     it("Should navigate and eval simple url", async () => {
-        const exepcted = new URL("/test", location.href).href;
+        const expected = new URL("/test/", location.href).href;
 
         using app = await SinglePageApplication.start("test", builder => {
             builder.addAction("/:name?", () => { });
@@ -18,11 +18,11 @@ describe("NavigationService", () => {
 
         await svc.navigate("/test");
 
-        assert.equal(location.href, exepcted);
+        assert.equal(location.href, expected);
     });
 
     it("Should navigate to a children part", async () => {
-        const exepcted = new URL("/test", location.href).href;
+        const expected = new URL("/test/", location.href).href;
 
         using app = await SinglePageApplication.start("test", builder => {
             builder.addPart("/:part?home/*", x => {
@@ -36,12 +36,12 @@ describe("NavigationService", () => {
 
         await svc.navigate("/test");
 
-        assert.equal(location.href, exepcted);
+        assert.equal(location.href, expected);
     });
 
     it("Should call a part action", async () => {
         let callCount = 0;
-        const exepcted = new URL("/home/test", location.href).href;
+        const expected = new URL("/home/test/", location.href).href;
 
         using app = await SinglePageApplication.start("test", builder => {
             builder.addPart("/:part?home/*", x => {
@@ -56,14 +56,13 @@ describe("NavigationService", () => {
 
         await svc.navigate("~/test");
 
-        assert.equal(location.href, exepcted);
+        assert.equal(location.href, expected);
         assert.equal(callCount, 2);
     });
 
     it("Should call a part action and change part", async () => {
         let callCount = 0;
-        const exepcted = new URL("/home/test", location.href).href;
-
+        const expected = new URL("/home/test/", location.href).href;
 
         using app = await SinglePageApplication.start("test", builder => {
             builder.addPart("/:part?home/*", x => {
@@ -80,8 +79,37 @@ describe("NavigationService", () => {
 
         await svc.navigate("~/test");
 
-        assert.equal(location.href, exepcted);
+        assert.equal(location.href, expected);
         assert.equal(callCount, 2);
+    });
+
+    it("Should call nested part", async () => {
+        let callCount = 0;
+        const expected = new URL( "/home/index/donot/", location.href).href;
+
+        using app = await SinglePageApplication.start("test", builder => {
+            builder.addPart("/:part?home/*", x => {
+                x.addPart("~/:part?index", x => {
+                    x.addAction("~/:action<do>?", IRouter, (svc: IRouter) => {
+                        callCount++;
+                    });
+                    x.addAction("~/:action<donot>?", IRouter, (svc: IRouter) => {
+                        callCount--;
+                    });
+                })
+            });
+        });
+
+        assert.isDefined(app.activeChild);
+        assert.isDefined(app.activeChild?.activeChild);
+        assert.equal(callCount, 1);
+
+        const svc = app.activeChild!.activeChild!.services.get(INavigationService, true);
+
+        await svc.navigate("~/donot");
+
+        assert.equal(location.href, expected);
+        assert.equal(callCount, 0);
     });
 
     it("Should navigate properly between parts", async () => {
