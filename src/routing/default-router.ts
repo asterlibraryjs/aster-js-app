@@ -130,7 +130,6 @@ export class DefaultRouter implements IRouter {
             this._current = ctx.data;
 
             const root = this._rootPath + ctx.data.path.substring(1);
-            console.warn("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ", root);
             await this.invokeChildren(root, cursor, ctx);
 
             const sourcePath = cursor.sourcePath;
