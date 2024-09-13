@@ -96,7 +96,9 @@ export class DefaultRouter implements IRouter {
         const routeHandler = await this.resolveHandler(cursor);
 
         if (!routeHandler) {
-            this._logger.warn(null, `No match found for the remaining route path: {relativeUrl}`, cursor.remainingPath, ...this._routingTable.getPaths());
+            if (!parent) {
+                this._logger.warn(null, `No match found for the remaining route path: {relativeUrl}`, cursor.remainingPath, ...this._routingTable.getPaths());
+            }
             return { success: false, reason: `No match found for the remaining route path: ${cursor.remainingPath}` };
         }
 
@@ -140,20 +142,17 @@ export class DefaultRouter implements IRouter {
         return RoutingResult.failure("Error while invoking routing handler");
     }
 
-    private async invokeChildren(root:string, cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
+    private async invokeChildren(root: string, cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
         const activeChildren = [...ApplicationPartUtils.scanActiveChildren(this, { includeSelf: false, nested: false })];
         if (activeChildren.length !== 0) {
             let flag = true;
-            for (const [activeRoute, activePart, child] of activeChildren) {
-                if (activeRoute !== ctx.data.route) {
-                    this._application.desactivate(activePart.name);
+            for (const [route, part, child] of activeChildren) {
+                if (route !== ctx.data.route) {
+                    this._application.desactivate(part.name);
                 }
                 else if (flag && await child.handle(root, cursor, ctx)) {
                     flag = false;
                     this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
-                }
-                else if (this._application.activeChild === activePart) {
-                    this._application.desactivate(activePart.name);
                 }
             }
 

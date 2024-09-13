@@ -6,6 +6,7 @@ import { ApplicationPart } from "./application-part";
 import { ApplicationPartBuilder } from "./application-part-builder";
 import { ChildApplicationPartBuilder } from "./child-application-part";
 import { DefaultApplicationConfigureHandler } from "./default-application-configure-handler";
+import { INavigationService } from "../navigation";
 
 class SinglePageAppBuilder extends ApplicationPartBuilder {
 
@@ -23,6 +24,11 @@ export class SinglePageApplication extends ApplicationPart {
         builder: IIoCContainerBuilder
     ) {
         super(builder);
+    }
+
+    navigate(url: string, replace?: boolean): Promise<void> {
+        return this.services.get(INavigationService, true)
+            .navigate(url, replace);
     }
 
     protected createAppBuilder(name: string): IApplicationPartBuilder {
