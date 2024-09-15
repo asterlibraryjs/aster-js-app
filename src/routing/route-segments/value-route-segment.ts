@@ -62,13 +62,30 @@ export class ValueRouteSegment implements IRouteSegment {
 
     toString(): string {
         if (!this._toStringCache) {
-            const builder = [this._name];
+            const builder = [":"];
 
-            if (this._optional) builder.push("?");
+            if (this._converter.targetType === "boolean") {
+                builder.push("!");
+            }
+            else if (this._converter.targetType === "number") {
+                builder.push("+");
+            }
 
-            if (this._defaultValue !== null) builder.push(`:${this.defaultValueString}`);
+            builder.push(this._name);
 
-            this._toStringCache = `{${builder.join("")}}`;
+            if (this._validator) {
+                builder.push("<", this._validator.toRouteString(), ">");
+            }
+
+            if (this._optional) {
+                if (this._defaultValue !== null) {
+                    builder.push("?", this.defaultValueString);
+                }
+                else {
+                    builder.push("?");
+                }
+            }
+            this._toStringCache = `${builder.join("")}`;
         }
         return this._toStringCache;
     }

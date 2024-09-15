@@ -59,11 +59,11 @@ export type ApplicationPartLifecycleHook =
 /** Interface and service id that enumerate all default hooks for services in the context of an application part */
 export interface IApplicationPartLifecycle {
     /** Called during setup */
-    [ApplicationPartLifecycleHooks.setup]?(app: IApplicationPart): Promise<void>;
+    [ApplicationPartLifecycleHooks.setup]?(app: IApplicationPart): Promise<void> | void;
     /** Called when the part is activated */
-    [ApplicationPartLifecycleHooks.activated]?(app: IApplicationPart): Promise<void>;
+    [ApplicationPartLifecycleHooks.activated]?(app: IApplicationPart): Promise<void> | void;
     /** Called when the part is put in background */
-    [ApplicationPartLifecycleHooks.deactivated]?(app: IApplicationPart): Promise<void>;
+    [ApplicationPartLifecycleHooks.deactivated]?(app: IApplicationPart): Promise<void> | void;
 }
 
 export type ApplicationPartLifecycleListener = (app: IApplicationPart) => Promise<void>;

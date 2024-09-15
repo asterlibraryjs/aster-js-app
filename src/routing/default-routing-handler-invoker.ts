@@ -1,7 +1,5 @@
 import { ILogger, Many, ServiceContract } from "@aster-js/ioc";
 
-import { IApplicationPart } from "../abstraction/iapplication-part";
-
 import { IRoutingHandlerInvoker } from "./abstraction/irouting-handler-invoker";
 import { IRoutingObserver } from "./abstraction/irouting-observer";
 
@@ -12,7 +10,6 @@ import { RoutingInvocationContext } from "./routing-invocation-context";
 export class DefaultRoutingHandlerInvoker implements IRoutingHandlerInvoker {
 
     constructor(
-        @IApplicationPart private readonly _application: IApplicationPart,
         @Many(IRoutingObserver) private readonly _observers: IRoutingObserver[],
         @ILogger private readonly _logger: ILogger
     ) { }
