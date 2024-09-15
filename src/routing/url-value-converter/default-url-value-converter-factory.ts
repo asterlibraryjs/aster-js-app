@@ -11,6 +11,8 @@ const BOOL_INDICATOR_CHAR = "!";
 @ServiceContract(IUrlValueConverterFactory)
 export class DefaultUrlValueConverterFactory {
     private readonly _defaultConverter: IUrlValueConverter = new UrlStringValueConverter();
+    private readonly _defaultNumberConverter: IUrlValueConverter = new UrlNumberValueConverter();
+    private readonly _defaultBooleanConverter: IUrlValueConverter = new UrlBooleanValueConverter("true", "false");
 
     getDefaultConverter(): IUrlValueConverter {
         return this._defaultConverter;
@@ -27,9 +29,9 @@ export class DefaultUrlValueConverterFactory {
                     }
                     return new UrlBooleanValueConverter(args[0], args[1]);
                 }
-                return new UrlBooleanValueConverter("true", "false");
+                return this._defaultBooleanConverter;
             case NUMBER_INDICATOR_CHAR:
-                return new UrlNumberValueConverter();
+                return this._defaultNumberConverter;
             default: return null;
         }
     }

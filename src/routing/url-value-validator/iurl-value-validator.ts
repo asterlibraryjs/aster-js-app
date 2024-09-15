@@ -9,4 +9,5 @@ export interface IUrlValueValidatorFactory {
 
 export interface IUrlValueValidator {
     validate(value: string): boolean;
+    toRouteString(): string;
 }

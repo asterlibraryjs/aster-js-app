@@ -3,7 +3,7 @@ import { RouteResolutionCursor } from "./route-resolution-cusor";
 
 describe("RouteResolutionCursor", () => {
 
-    it("Should ", () => {
+    it("Should create new", () => {
         const cursor = new RouteResolutionCursor(["bob"], false);
 
         assert.isFalse(cursor.relative, "Should not be relative");

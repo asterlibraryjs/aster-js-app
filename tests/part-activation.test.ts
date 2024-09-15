@@ -1,9 +1,8 @@
 import { assert } from "chai";
-import { ApplicationPartLifecycleHooks, SinglePageApplication, ApplicationPartActivated, IApplicationPart, IContainerRouteData, ApplicationPartDeactivated, ApplicationPartSetup } from "../src";
-import { resolveServiceId, ServiceContract, ServiceIdentifier } from "@aster-js/ioc";
-import { IDisposable } from "@aster-js/core";
+import { SinglePageApplication, ApplicationPartActivated, IApplicationPart, ApplicationPartDeactivated, ApplicationPartSetup } from "../src";
+import { ServiceContract, ServiceIdentifier } from "@aster-js/ioc";
 
-describe("SinglePageApplication", () => {
+describe("Part Activations", () => {
 
     beforeEach(() => {
         history.replaceState({}, "", location.origin);
@@ -36,7 +35,7 @@ describe("SinglePageApplication", () => {
         }
     }
 
-    it("Should load and unload app properly", async () => {
+    it("Should navigate through first level parts", async () => {
 
         using app = await SinglePageApplication.start("LoadTest", x => {
             x.addPart("/:part<moon>", x => x.configure(x => x.addSingleton(CustomService)));
@@ -86,6 +85,63 @@ describe("SinglePageApplication", () => {
         assert.equal(thirdService.setupCount, 1);
         assert.equal(thirdService.activateCount, 2);
         assert.equal(thirdService.deactivateCount, 1);
+    });
+
+    it("Should reload a second level app properly", async () => {
+
+        using app = await SinglePageApplication.start("LoadTest", x => {
+            x.addPart("/:part<moon>/*", x => {
+                x.addPart("~/:part?quarter", x => x.configure(x => x.addSingleton(CustomService)));
+            });
+            x.addPart("/:part<sun>?sun", x => { });
+        });
+
+        const firstApp = app.activeChild!;
+        assert.isDefined(firstApp);
+        assert.equal(firstApp.name, "sun");
+
+        await app.navigate("/moon/full");
+        await app.navigate("/sun");
+        await app.navigate("/moon/full");
+
+        const lastApp = app.activeChild?.activeChild!;
+        assert.isDefined(lastApp);
+        assert.equal(lastApp.name, "full");
+
+        const childService = lastApp.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 2);
+        assert.equal(childService.deactivateCount, 1);
+    });
+
+    it("Should reload a second level app properly after a sibling", async () => {
+
+        using app = await SinglePageApplication.start("LoadTest", x => {
+            x.addPart("/:part<moon>/*", x => {
+                x.addPart("~/:part?quarter", x => x.configure(x => x.addSingleton(CustomService)));
+            });
+            x.addPart("/:part<sun>?sun", x => { });
+        });
+
+        const firstApp = app.activeChild!;
+        assert.isDefined(firstApp);
+        assert.equal(firstApp.name, "sun");
+
+        await app.navigate("/moon/full");
+        await app.navigate("/sun");
+        await app.navigate("/moon/quarter");
+        await app.navigate("/moon/full");
+
+        const lastApp = app.activeChild?.activeChild!;
+        assert.isDefined(lastApp);
+        assert.equal(lastApp.name, "full");
+
+        const childService = lastApp.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 2);
+        assert.equal(childService.deactivateCount, 1);
     });
 
 });
