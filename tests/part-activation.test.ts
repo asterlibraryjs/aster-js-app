@@ -144,4 +144,83 @@ describe("Part Activations", () => {
         assert.equal(childService.deactivateCount, 1);
     });
 
+    it("Should reload a third level app properly after a sibling", async () => {
+
+        using app = await SinglePageApplication.start("LoadTest", x => {
+            x.addPart("/:part<moon>/*", x => {
+                x.addPart("~/:part<new|waxing|quarter|waning|full>?full/*", x => {
+                    x.addPart("~/:part<rise|set>?rise", x => x.configure(x => x.addSingleton(CustomService)));
+                });
+            });
+            x.addPart("/:part<sun>?sun", x => { });
+        });
+
+        const firstApp = app.activeChild!;
+        assert.isDefined(firstApp);
+        assert.equal(firstApp.name, "sun");
+
+        await app.navigate("/moon/full/rise");
+
+        let lastApp = app.activeChild?.activeChild?.activeChild!;
+        assert.isDefined(lastApp);
+        assert.equal(lastApp.name, "rise");
+
+        let childService = lastApp.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 1);
+        assert.equal(childService.deactivateCount, 0);
+
+        await app.navigate("/sun");
+
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 1);
+        assert.equal(childService.deactivateCount, 1);
+
+        await app.navigate("/moon/quarter");
+        await app.navigate("/moon/full/rise");
+
+        lastApp = app.activeChild?.activeChild?.activeChild!;
+        assert.isDefined(lastApp);
+        assert.equal(lastApp.name, "rise");
+
+        childService = lastApp.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 2);
+        assert.equal(childService.deactivateCount, 1);
+    });
+
+    it("Should disable second level", async () => {
+
+        using app = await SinglePageApplication.start("LoadTest", x => {
+            x.addPart("/:part<moon>/*", x => {
+                x.addPart("~/:part<new|waxing|quarter|waning|full>", x => x.configure(x => x.addSingleton(CustomService)));
+            });
+            x.addPart("/:part<sun>?sun", x => { });
+        });
+
+        const firstApp = app.activeChild!;
+        assert.isDefined(firstApp);
+        assert.equal(firstApp.name, "sun");
+
+        await app.navigate("/moon/full");
+
+        const lastApp = app.activeChild?.activeChild!;
+        assert.isDefined(lastApp);
+        assert.equal(lastApp.name, "full");
+
+        const childService = lastApp.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 1);
+        assert.equal(childService.deactivateCount, 0);
+
+        await app.navigate("/moon");
+
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 1);
+        assert.equal(childService.deactivateCount, 1);
+    });
+
 });
