@@ -114,13 +114,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
         const part = this._children.get(name);
         if (part) {
-            const current = this._current[1];
-            if (current) {
-                const allParts = [...Iterables.create(current, x => x.activeChild)].reverse();
-                for (const part of allParts) {
-                    this.desactivatePart(part);
-                }
-            }
+            await this.desactivateCurrent();
 
             await this.activatePart(part);
             this._current = [route, part];
@@ -132,8 +126,19 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
     async desactivate(name: string): Promise<void> {
         if (this._current[1]?.name === name) {
-            await this.desactivatePart(this._current[1]);
+            await this.desactivateCurrent();
         }
+    }
+
+    protected async desactivateCurrent(): Promise<void> {
+        const current = this._current[1];
+        if (current) {
+            const allParts = [...Iterables.create(current, x => x.activeChild)].reverse();
+            for (const part of allParts) {
+                await this.desactivatePart(part);
+            }
+        }
+        this._current = [];
     }
 
     protected async activatePart(part: IApplicationPart): Promise<void> {

@@ -148,14 +148,17 @@ export class DefaultRouter implements IRouter {
     }
 
     private async invokeChildren(root: string, cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
-        const activeChild = this._application.activeChild;
-        if (activeChild) {
-            const router = activeChild.services.get(IRouter, true);
+        const currentChild = this._application.activeChild;
+        if (currentChild) {
+            const router = currentChild.services.get(IRouter, true);
             if (router instanceof DefaultRouter && await router.handle(root, cursor, ctx)) {
                 this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
             }
-            else if (cursor.remaining !== 0) {
-                this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", cursor.remainingPath);
+            else {
+                if (cursor.remaining !== 0) {
+                    this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", cursor.remainingPath);
+                }
+                this.deactivateChildren(currentChild);
             }
         }
         else if (cursor.remaining !== 0) {
@@ -164,5 +167,10 @@ export class DefaultRouter implements IRouter {
         else {
             this._logger.debug("Routing completed successfully.");
         }
+    }
+
+    private async deactivateChildren(app: IApplicationPart): Promise<void> {
+        const currentChild = app.activeChild;
+        if (currentChild) app.desactivate(currentChild.name);
     }
 }
