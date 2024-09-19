@@ -1,6 +1,6 @@
 import { AbortToken, Delayed } from "@aster-js/async";
 import { Constructor, DisposableHost, IDisposable } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ILogger, ServiceProvider } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, ILogger, ServiceCollection, ServiceProvider } from "@aster-js/ioc";
 import { AppConfigureDelegate, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { Memoize } from "@aster-js/decorators";
 import { ApplicationPartLifecycleHooks } from "./iapplication-part-lifecycle";
@@ -11,7 +11,8 @@ import { createApplicationPartModule } from "./default-application-part-services
 export abstract class ApplicationPart extends DisposableHost implements IApplicationPart {
     private readonly _module: IIoCModule;
     private readonly _children: Map<string, IApplicationPart> = new Map();
-    private _current: [Route, IApplicationPart] | [] = [];
+    private _childVersion: number = 0;
+    private _current: [Route, IApplicationPart, number] | [] = [];
 
     get name(): string { return this._module.name; }
 
@@ -20,6 +21,8 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     abstract get parent(): IIoCModule;
 
     get running(): boolean { return this._module.running; }
+
+    get childVersion(): number { return this._current[2] ?? -1; }
 
     get activeRoute(): Route | undefined { return this._current[0]; }
 
@@ -108,6 +111,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         if (!name) throw new Error(`"name" parameter cannot be null or empty`);
 
         if (this._current[0] === route && this._current[1]?.name === name) {
+            this._current[2] = ++this._childVersion;
             this.logger.debug(`Part "{name}" is already activated`, name);
             return;
         }
@@ -117,7 +121,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
             await this.desactivateCurrent();
 
             await this.activatePart(part);
-            this._current = [route, part];
+            this._current = [route, part, ++this._childVersion];
         }
         else {
             this.logger.error(null, `Cannot find any part named "{name}"`, name);

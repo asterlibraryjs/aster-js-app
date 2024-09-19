@@ -4,10 +4,17 @@ import { IAppConfigureHandler, AppConfigureDelegate } from "./iapp-configure-han
 import { AppServiceId } from "./app-service-id";
 import { Route } from "../routing/route";
 
-export const IApplicationPart = AppServiceId<IApplicationPart>( "IApplicationPart");
+export const IApplicationPart = AppServiceId<IApplicationPart>("IApplicationPart");
 
 /** Represents a part of an application based on a IoC Container and using it a registry for all its services. */
 export interface IApplicationPart extends IIoCModule {
+
+    /**
+     * Gets a version number that give version information about activation of children.
+     * Each time a child is attempted to be activated, the version number increment.
+     * This version number gives information to the router to if the child still relevant.
+     */
+    readonly childVersion: number;
 
     /**
      * Active child application part.

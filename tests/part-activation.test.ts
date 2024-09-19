@@ -223,4 +223,40 @@ describe("Part Activations", () => {
         assert.equal(childService.deactivateCount, 1);
     });
 
+    it("Should disable second level 2", async () => {
+
+        using app = await SinglePageApplication.start("LoadTest", x => {
+            x.addPart("/:part<moon>/*", x => {
+                x.addPart("~/:part<new|waxing|quarter|waning|full>", x => x.configure(x => x.addSingleton(CustomService)));
+                x.addAction("~/", _ => {  });
+            });
+            x.addPart("/:part<sun>?sun", x => { });
+        });
+
+        // Initial state
+        const firstApp = app.activeChild!;
+        assert.isDefined(firstApp);
+        assert.equal(firstApp.name, "sun");
+
+        // Navigate to full moon
+        await app.navigate("/moon/full");
+
+        const lastApp = app.activeChild?.activeChild!;
+        assert.isDefined(lastApp);
+        assert.equal(lastApp.name, "full");
+
+        const childService = lastApp.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 1);
+        assert.equal(childService.deactivateCount, 0);
+
+        // Navigate to full moon but with no part activation
+        await app.navigate("/moon");
+
+        assert.equal(childService.setupCount, 1);
+        assert.equal(childService.activateCount, 1);
+        assert.equal(childService.deactivateCount, 1);
+    });
+
 });
