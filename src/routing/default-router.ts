@@ -151,8 +151,14 @@ export class DefaultRouter implements IRouter {
         const currentChild = this._application.activeChild;
         if (currentChild) {
             const router = currentChild.services.get(IRouter, true);
+            const childVersion = currentChild.childVersion;
             if (router instanceof DefaultRouter && await router.handle(root, cursor, ctx)) {
                 this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
+
+                // If no activation attempt, that mean current child is not relevant anymore
+                if(currentChild.childVersion === childVersion) {
+                    this.deactivateChildren(currentChild);
+                }
             }
             else {
                 if (cursor.remaining !== 0) {
