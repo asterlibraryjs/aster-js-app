@@ -89,7 +89,7 @@ describe("NavigationService", () => {
 
         using app = await SinglePageApplication.start("test", builder => {
             builder.addPart("/:part?home/*", x => {
-                x.addPart("~/:part?index", x => {
+                x.addPart("~/:part?index/*", x => {
                     x.addAction("~/:action<do>?", IRouter, (svc: IRouter) => {
                         callCount++;
                     });
