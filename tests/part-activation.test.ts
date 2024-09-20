@@ -35,6 +35,27 @@ describe("Part Activations", () => {
         }
     }
 
+    function assertApp(app: IApplicationPart, expectedName: string, message?: string) {
+        assert.isDefined(app, "app:" + message);
+        assert.equal(app.name, expectedName, "app.name:" + message);
+    }
+
+    function assertServiceStates(svc: CustomService, setupCount: number, activateCount: number, deactivateCount: number, message?: string) {
+        assert.equal(svc.setupCount, setupCount, "setupCount:" + message);
+        assert.equal(svc.activateCount, activateCount, "activateCount:" + message);
+        assert.equal(svc.deactivateCount, deactivateCount, "deactivateCount:" + message);
+    }
+
+    function assertAppStates(app: IApplicationPart, expectedName: string, setupCount: number, activateCount: number, deactivateCount: number, message?: string) {
+        assertApp(app, expectedName, message);
+
+        const childService = app.services.get(ICustomService)!;
+        assert.isDefined(childService);
+        assertServiceStates(childService, setupCount, activateCount, deactivateCount, message);
+
+        return childService;
+    }
+
     it("Should navigate through first level parts", async () => {
 
         using app = await SinglePageApplication.start("LoadTest", x => {
@@ -42,49 +63,21 @@ describe("Part Activations", () => {
             x.addPart("/:part<sun>?sun", x => x.configure(x => x.addSingleton(CustomService)));
         });
 
-        const firstApp = app.activeChild!;
-        assert.isDefined(firstApp);
-        assert.equal(firstApp.name, "sun");
-
-        const firstService = firstApp.services.get(ICustomService)!;
-        assert.isDefined(firstService);
-        assert.equal(firstService.setupCount, 1);
-        assert.equal(firstService.activateCount, 1);
-        assert.equal(firstService.deactivateCount, 0);
+        const firstService = assertAppStates(app.activeChild!, "sun", 1, 1, 0);
 
         await app.navigate("/moon");
 
-        assert.equal(firstService.setupCount, 1);
-        assert.equal(firstService.activateCount, 1);
-        assert.equal(firstService.deactivateCount, 1);
+        assertServiceStates(firstService, 1, 1, 1);
 
-        const secondApp = app.activeChild!;
-        assert.isDefined(secondApp);
-        assert.equal(secondApp.name, "moon");
-
-        const secondService = secondApp.services.get(ICustomService)!;
-        assert.isDefined(secondService);
+        const secondService = assertAppStates(app.activeChild!, "moon", 1, 1, 0);
         assert.notEqual(firstService, secondService);
-        assert.equal(secondService.setupCount, 1);
-        assert.equal(secondService.activateCount, 1);
-        assert.equal(secondService.deactivateCount, 0);
 
         await app.navigate("/sun");
 
-        assert.equal(secondService.setupCount, 1);
-        assert.equal(secondService.activateCount, 1);
-        assert.equal(secondService.deactivateCount, 1);
+        assertServiceStates(secondService, 1, 1, 1);
 
-        const thirdApp = app.activeChild!;
-        assert.isDefined(thirdApp);
-        assert.equal(thirdApp.name, "sun");
-
-        const thirdService = thirdApp.services.get(ICustomService)!;
-        assert.isDefined(thirdService);
+        const thirdService = assertAppStates(app.activeChild!, "sun", 1, 2, 1);
         assert.equal(firstService, thirdService);
-        assert.equal(thirdService.setupCount, 1);
-        assert.equal(thirdService.activateCount, 2);
-        assert.equal(thirdService.deactivateCount, 1);
     });
 
     it("Should reload a second level app properly", async () => {
@@ -96,23 +89,13 @@ describe("Part Activations", () => {
             x.addPart("/:part<sun>?sun", x => { });
         });
 
-        const firstApp = app.activeChild!;
-        assert.isDefined(firstApp);
-        assert.equal(firstApp.name, "sun");
+        assertApp(app.activeChild!, "sun");
 
         await app.navigate("/moon/full");
         await app.navigate("/sun");
         await app.navigate("/moon/full");
 
-        const lastApp = app.activeChild?.activeChild!;
-        assert.isDefined(lastApp);
-        assert.equal(lastApp.name, "full");
-
-        const childService = lastApp.services.get(ICustomService)!;
-        assert.isDefined(childService);
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 2);
-        assert.equal(childService.deactivateCount, 1);
+        assertAppStates(app.activeChild?.activeChild!, "full", 1, 2, 1);
     });
 
     it("Should reload a second level app properly after a sibling", async () => {
@@ -124,24 +107,14 @@ describe("Part Activations", () => {
             x.addPart("/:part<sun>?sun", x => { });
         });
 
-        const firstApp = app.activeChild!;
-        assert.isDefined(firstApp);
-        assert.equal(firstApp.name, "sun");
+        assertApp(app.activeChild!, "sun");
 
         await app.navigate("/moon/full");
         await app.navigate("/sun");
         await app.navigate("/moon/quarter");
         await app.navigate("/moon/full");
 
-        const lastApp = app.activeChild?.activeChild!;
-        assert.isDefined(lastApp);
-        assert.equal(lastApp.name, "full");
-
-        const childService = lastApp.services.get(ICustomService)!;
-        assert.isDefined(childService);
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 2);
-        assert.equal(childService.deactivateCount, 1);
+        assertAppStates(app.activeChild?.activeChild!, "full", 1, 2, 1);
     });
 
     it("Should reload a third level app properly after a sibling", async () => {
@@ -155,40 +128,20 @@ describe("Part Activations", () => {
             x.addPart("/:part<sun>?sun", x => { });
         });
 
-        const firstApp = app.activeChild!;
-        assert.isDefined(firstApp);
-        assert.equal(firstApp.name, "sun");
+        assertApp(app.activeChild!, "sun");
 
         await app.navigate("/moon/full/rise");
 
-        let lastApp = app.activeChild?.activeChild?.activeChild!;
-        assert.isDefined(lastApp);
-        assert.equal(lastApp.name, "rise");
-
-        let childService = lastApp.services.get(ICustomService)!;
-        assert.isDefined(childService);
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 1);
-        assert.equal(childService.deactivateCount, 0);
+        const childService = assertAppStates(app.activeChild?.activeChild?.activeChild!, "rise", 1, 1, 0);
 
         await app.navigate("/sun");
 
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 1);
-        assert.equal(childService.deactivateCount, 1);
+        assertServiceStates(childService, 1, 1, 1);
 
         await app.navigate("/moon/quarter");
         await app.navigate("/moon/full/rise");
 
-        lastApp = app.activeChild?.activeChild?.activeChild!;
-        assert.isDefined(lastApp);
-        assert.equal(lastApp.name, "rise");
-
-        childService = lastApp.services.get(ICustomService)!;
-        assert.isDefined(childService);
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 2);
-        assert.equal(childService.deactivateCount, 1);
+        assertAppStates(app.activeChild?.activeChild?.activeChild!, "rise", 1, 2, 1);
     });
 
     it("Should disable second level", async () => {
@@ -200,27 +153,15 @@ describe("Part Activations", () => {
             x.addPart("/:part<sun>?sun", x => { });
         });
 
-        const firstApp = app.activeChild!;
-        assert.isDefined(firstApp);
-        assert.equal(firstApp.name, "sun");
+        assertApp(app.activeChild!, "sun");
 
         await app.navigate("/moon/full");
 
-        const lastApp = app.activeChild?.activeChild!;
-        assert.isDefined(lastApp);
-        assert.equal(lastApp.name, "full");
-
-        const childService = lastApp.services.get(ICustomService)!;
-        assert.isDefined(childService);
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 1);
-        assert.equal(childService.deactivateCount, 0);
+        const childService = assertAppStates(app.activeChild?.activeChild!, "full", 1, 1, 0);
 
         await app.navigate("/moon");
 
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 1);
-        assert.equal(childService.deactivateCount, 1);
+        assertServiceStates(childService, 1, 1, 1);
     });
 
     it("Should disable second level 2", async () => {
@@ -228,35 +169,57 @@ describe("Part Activations", () => {
         using app = await SinglePageApplication.start("LoadTest", x => {
             x.addPart("/:part<moon>/*", x => {
                 x.addPart("~/:part<new|waxing|quarter|waning|full>", x => x.configure(x => x.addSingleton(CustomService)));
-                x.addAction("~/", _ => {  });
+                x.addAction("~/", _ => { });
             });
             x.addPart("/:part<sun>?sun", x => { });
         });
 
-        // Initial state
-        const firstApp = app.activeChild!;
-        assert.isDefined(firstApp);
-        assert.equal(firstApp.name, "sun");
+        assertApp(app.activeChild!, "sun");
 
         // Navigate to full moon
         await app.navigate("/moon/full");
 
-        const lastApp = app.activeChild?.activeChild!;
-        assert.isDefined(lastApp);
-        assert.equal(lastApp.name, "full");
-
-        const childService = lastApp.services.get(ICustomService)!;
-        assert.isDefined(childService);
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 1);
-        assert.equal(childService.deactivateCount, 0);
+        const childService = assertAppStates(app.activeChild?.activeChild!, "full", 1, 1, 0);
 
         // Navigate to full moon but with no part activation
         await app.navigate("/moon");
 
-        assert.equal(childService.setupCount, 1);
-        assert.equal(childService.activateCount, 1);
-        assert.equal(childService.deactivateCount, 1);
+        assertServiceStates(childService, 1, 1, 1);
+    });
+
+    it("Should navigate back and forth", async () => {
+
+        using app = await SinglePageApplication.start("LoadTest", x => {
+            x.addPart("/:part<views>?views/*", x => {
+                x.addPart("/:part<moon>/*", x => {
+                    x.addPart("~/:part<new|waxing|quarter|waning|full>/:id", x => x.configure(x => x.addSingleton(CustomService)));
+                    x.addAction("~/*", _ => { });
+                });
+                x.addPart("/:part<sun>?sun", x => { });
+            });
+        });
+
+        assertApp(app.activeChild?.activeChild!, "sun", "Initial");
+
+        await app.navigate("/views/moon/full/g25gde");
+
+        const childService = assertAppStates(app.activeChild?.activeChild?.activeChild!, "full", 1, 1, 0, "First navigation");
+
+        await app.navigate("/views/moon");
+
+        assertServiceStates(childService, 1, 1, 1, "After second navigation");
+
+        await app.navigate("/views/moon/full/g25gde");
+
+        assertServiceStates(childService, 1, 2, 1, "After third navigation");
+
+        await app.navigate("/views/moon/");
+
+        assertServiceStates(childService, 1, 2, 2, "After fourth navigation");
+
+        await app.navigate("/views/moon/full/fe41d");
+
+        assertServiceStates(childService, 1, 3, 2, "After fift navigation");
     });
 
 });
