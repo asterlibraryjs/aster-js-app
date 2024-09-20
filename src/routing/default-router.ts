@@ -141,6 +141,11 @@ export class DefaultRouter implements IRouter {
     private async invokeChildren(root: string, cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<void> {
         const currentChild = this._application.activeChild;
         if (currentChild) {
+            if (!ctx.data.route.wildcard) {
+                await this.deactivateChildren(currentChild);
+                return
+            }
+
             const router = currentChild.services.get(IRouter, true);
             const childVersion = currentChild.childVersion;
             if (router instanceof DefaultRouter && await router.handle(root, cursor, ctx)) {

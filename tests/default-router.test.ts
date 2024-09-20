@@ -82,7 +82,7 @@ describe("DefaultRouter", () => {
             }
         }
 
-        using app = await SinglePageApplication.start("test", x => x.addPart("/page/:part/view/:view", ViewConfigurationHandler));
+        using app = await SinglePageApplication.start("test", x => x.addPart("/page/:part/view/:view/*", ViewConfigurationHandler));
         const router = app.services.get(IRouter, true);
         const result = await router.eval("https://localhost/page/species/view/vertebrate", {});
 
