@@ -19,7 +19,6 @@ import { ApplicationPartLifecycleHooks } from "../application-part";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
-    private _current?: RouteData;
     private _rootPath: string = "/";
 
     constructor(
@@ -28,10 +27,6 @@ export class DefaultRouter implements IRouter {
         @IRoutingHandlerInvoker private readonly _handlerInvoker: IRoutingHandlerInvoker,
         @ILogger private readonly _logger: ILogger
     ) { }
-
-    [ApplicationPartLifecycleHooks.deactivated](): void {
-        this._current = undefined;
-    }
 
     async eval(url: string, defaults: RouteValues = {}): Promise<RoutingResult> {
         url = Path.coerce(url);
@@ -131,11 +126,7 @@ export class DefaultRouter implements IRouter {
     }
 
     private async invokeHandler(cursor: RouteResolutionCursor, ctx: RoutingInvocationContext): Promise<RoutingResult> {
-        if (this._current?.path === ctx.data.path
-            || await this._handlerInvoker.invoke(cursor, ctx)
-        ) {
-            this._current = ctx.data;
-
+        if (await this._handlerInvoker.invoke(cursor, ctx)) {
             const root = this._rootPath + ctx.data.path.substring(1);
             await this.invokeChildren(root, cursor, ctx);
 
@@ -156,15 +147,15 @@ export class DefaultRouter implements IRouter {
                 this._logger.debug("Child router handled the remaining route {path}", cursor.toString());
 
                 // If no activation attempt, that mean current child is not relevant anymore
-                if(currentChild.childVersion === childVersion) {
-                    this.deactivateChildren(currentChild);
+                if (currentChild.childVersion === childVersion) {
+                    await this.deactivateChildren(currentChild);
                 }
             }
             else {
                 if (cursor.remaining !== 0) {
                     this._logger.warn(null, "No match found for the remaining route path: {relativeUrl}", cursor.remainingPath);
                 }
-                this.deactivateChildren(currentChild);
+                await this.deactivateChildren(currentChild);
             }
         }
         else if (cursor.remaining !== 0) {
@@ -177,6 +168,6 @@ export class DefaultRouter implements IRouter {
 
     private async deactivateChildren(app: IApplicationPart): Promise<void> {
         const currentChild = app.activeChild;
-        if (currentChild) app.desactivate(currentChild.name);
+        if (currentChild) await app.desactivate(currentChild.name);
     }
 }

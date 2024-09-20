@@ -135,14 +135,15 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
     }
 
     protected async desactivateCurrent(): Promise<void> {
-        const current = this._current[1];
-        if (current) {
-            const allParts = [...Iterables.create(current, x => x.activeChild)].reverse();
-            for (const part of allParts) {
-                await this.desactivatePart(part);
+        const allParts = [...Iterables.create<IApplicationPart>(this, x => x.activeChild)].reverse();
+        for (const part of allParts) {
+            if (!part.activeChild) continue;
+
+            const activeChild = part.activeChild;
+            if (await this.desactivatePart(activeChild) && part instanceof ApplicationPart) {
+                part._current = [];
             }
         }
-        this._current = [];
     }
 
     protected async activatePart(part: IApplicationPart): Promise<void> {
@@ -161,9 +162,6 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
         this.logger.debug(`Desactivating current active parts from "{path}"`, part.path);
         try {
             await ApplicationPartLifecycleHooks.invoke(part, ApplicationPartLifecycleHooks.deactivated);
-            if (part instanceof ApplicationPart) {
-                part._current = [];
-            }
             this.logger.info(`Part "{path}" desactivated`, part.path);
             return true;
         }
