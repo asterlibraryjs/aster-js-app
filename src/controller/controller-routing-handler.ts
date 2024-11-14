@@ -1,7 +1,7 @@
 import { Func } from "@aster-js/core"
 import { ServiceIdentifier } from "@aster-js/ioc";
 import { IRoutingHandler, RouteData, RoutingInvocationContext } from "../routing";
-import { ControllerRoutingCallbackArgsTag } from "./controller-routing-handler-tag";
+import { ControllerCallbackArgsTag } from "./controller-routing-handler-tag";
 import type { IRoutingResult } from "./irouting-result";
 
 /**
@@ -19,8 +19,10 @@ export class ControllerRoutingHandler implements IRoutingHandler {
         const controller = app.services.get(this._target, true);
 
         const proto = Object.getPrototypeOf(controller);
-        const argsDefinition = ControllerRoutingCallbackArgsTag.get(proto);
-        const args = [...argsDefinition.get(this._methodName)].reverse().map(x => x.accessor(data));
+        const argsDefinition = ControllerCallbackArgsTag.get(proto);
+        const args = [...argsDefinition.get(this._methodName)]
+            .reverse()
+            .map(x => x.accessor(data, app));
 
         let result = this._callback.apply(controller, args);
 

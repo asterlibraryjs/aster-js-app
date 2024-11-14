@@ -1,8 +1,9 @@
-import { asserts, Constructor } from "@aster-js/core";
+import {asserts, Constructor, Func} from "@aster-js/core";
 import { resolveServiceId } from "@aster-js/ioc";
 import { RouteData, UrlValues } from "../routing";
 import { ControllerRoutingHandler } from "./controller-routing-handler";
-import { ControllerRoutingCallbackArgsTag, ControllerRoutingHandlerTag } from "./controller-routing-handler-tag";
+import { ControllerCallbackArgsTag, ControllerRoutingHandlerTag } from "./controller-routing-handler-tag";
+import {IApplicationPart} from "../abstraction";
 
 /** Decorate to enable binding route template to controller method call */
 export const RoutePath = (path: string) => {
@@ -32,7 +33,7 @@ export const RoutePath = (path: string) => {
 
         const accessor = ({ values }: RouteData) => name ? values[name] : structuredClone(values);
 
-        ControllerRoutingCallbackArgsTag.get(target).add(propertyKey, { index, accessor });
+        injectArgument(target, propertyKey, index, accessor);
     }
 }
 
@@ -45,7 +46,7 @@ export const FromSearch = (name?: string) => {
 
         const accessor = ({ query }: RouteData) => name ? query[name] : structuredClone(query);
 
-        ControllerRoutingCallbackArgsTag.get(target).add(propertyKey, { index, accessor });
+        injectArgument(target, propertyKey, index, accessor);
     }
 }
 
@@ -65,6 +66,10 @@ export const FromUrl = (name?: string) => {
             return values[name];
         };
 
-        ControllerRoutingCallbackArgsTag.get(target).add(propertyKey, { index, accessor });
+        injectArgument(target, propertyKey, index, accessor);
     }
+}
+
+export function injectArgument(target: object, propertyKey: string, index: number, accessor: (data: RouteData, app: IApplicationPart) => any): void {
+    ControllerCallbackArgsTag.get(target).add(propertyKey, { index, accessor });
 }

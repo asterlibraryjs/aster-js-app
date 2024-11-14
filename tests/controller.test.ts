@@ -1,5 +1,22 @@
 import { assert } from "chai";
-import { htmlResult, IAppConfigureHandler, IApplicationPart, IRouter, IRoutingResult, FromUrl, UrlValues, FromSearch, SearchValues, RouteData, RoutePath, FromRoute, RouteValues, SinglePageApplication } from "../src";
+import {
+    htmlResult,
+    IAppConfigureHandler,
+    IApplicationPart,
+    IRouter,
+    IRoutingResult,
+    FromUrl,
+    UrlValues,
+    FromSearch,
+    SearchValues,
+    RouteData,
+    RoutePath,
+    FromRoute,
+    RouteValues,
+    SinglePageApplication,
+    injectArgument
+} from "../src";
+import {asserts} from "@aster-js/core";
 
 describe("Controller", () => {
 
@@ -8,8 +25,6 @@ describe("Controller", () => {
         root.innerHTML = "<b>Loading...</b>"
 
         class CustomerViewController {
-
-            constructor(@IApplicationPart private readonly _part: IApplicationPart) { }
 
             @RoutePath("/customer/:+customerId/detail/:+id/:text")
             async showDetail(
@@ -53,6 +68,38 @@ describe("Controller", () => {
         await app.services.get(IRouter, true).eval("./customer/555/detail/33/hello%20world?id=99&filter=a&filter=b");
 
         assert.equal(root.innerHTML, "<div><i>hello world 33 !!</i></div>");
+    });
+
+    it("Should use custom decorator to inject value", async () => {
+        const root = document.createElement("div");
+        root.innerHTML = "<b>Loading...</b>"
+
+        const AppName =  <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
+                asserts.ofType(propertyKey, "string");
+
+                const accessor = (_: RouteData, app: IApplicationPart) => app.name;
+
+                injectArgument(target, propertyKey, index, accessor);
+            };
+
+        class CustomerViewController {
+
+            @RoutePath("/customer/:+customerId")
+            async showDetail(
+                @AppName appName: string
+
+            ): Promise<IRoutingResult> {
+                assert.equal(appName, "bob", "appName");
+                return htmlResult(`<h1>${appName}</h1>`, root);
+            }
+        }
+
+        using app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
+            builder.addController(CustomerViewController);
+        }));
+
+        await app.services.get(IRouter, true).eval("./customer/555");
+        assert.equal(root.innerHTML, "<div><h1>bob</h1></div>");
     });
 
     it("Should use a controller nested in an application part to handle a route", async () => {

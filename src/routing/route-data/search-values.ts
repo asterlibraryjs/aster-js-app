@@ -33,7 +33,7 @@ export namespace SearchValues {
 
     export function toString(query: SearchValues, sort?: boolean): string {
         const search = new URLSearchParams();
-        const entries = Object.entries(query); search
+        const entries = Object.entries(query);
 
 
         for (const [key, value] of entries) {
@@ -47,7 +47,7 @@ export namespace SearchValues {
             }
         }
 
-        if (search) search.sort();
+        if (sort) search.sort();
         return search.toString();
     }
 
