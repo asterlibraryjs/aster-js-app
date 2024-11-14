@@ -15,7 +15,6 @@ import { RoutingConstants } from "./routing-constants";
 import { Route } from "./route";
 import { Path } from "./path";
 import { RoutingInvocationContext } from "./routing-invocation-context";
-import { ApplicationPartLifecycleHooks } from "../application-part";
 
 @ServiceContract(IRouter)
 export class DefaultRouter implements IRouter {
@@ -47,7 +46,7 @@ export class DefaultRouter implements IRouter {
                 return await root.eval(url, defaults);
             }
 
-            // Non relative path (root router context)
+            // Non-relative path (root router context)
             // This url may be relative or not
             const finalUrl = new URL(url, location.origin);
 
