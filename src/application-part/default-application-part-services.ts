@@ -3,7 +3,7 @@ import { IIoCContainerBuilder, IIoCModule, IServiceDescriptor, ServiceCollection
 import { IApplicationPart } from "../abstraction";
 import { ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
 import { ApplicationPartLifecycleWrapper } from "./application-part-lifecycle-wrapper";
-import { ContainerRouteData, DefaultRoutingHandlerInvoker, DefaultRouter, PartRouteData, DefaultRouteParser, DefaultRoutingTable, ContainerRouteDataRoutingObserverFactory } from "../routing";
+import { ContainerRouteData, DefaultRoutingHandlerInvoker, DefaultRouter, PartRouteData, DefaultRouteParser, DefaultRoutingTable, ContainerRouteDataRoutingObserverFactory, ContainerAmbientRouteValuesObserverFactory } from "../routing";
 import { DefaultNavigationService } from "../navigation/navigation-service";
 import { DefaultUrlValueConverterFactory } from "../routing/url-value-converter/default-url-value-converter-factory";
 import { DefaultUrlValueValidatorFactory } from "../routing/url-value-validator/default-url-value-validator-factory";
@@ -21,8 +21,9 @@ function configureDefaultAppPartServices(app: IApplicationPart, services: Servic
     services.addInstance(IApplicationPart, app, { scope: ServiceScope.container })
         .tryAddScoped(PartRouteData, { scope: ServiceScope.container })
         .tryAddScopedFactory(ContainerRouteDataRoutingObserverFactory, { scope: ServiceScope.container })
+        .tryAddScopedFactory(ContainerAmbientRouteValuesObserverFactory, { scope: ServiceScope.container })
         .tryAddScoped(ContainerRouteData, { scope: ServiceScope.container })
-        .tryAddScoped(DefaultNavigationService, { scope: ServiceScope.container })
+        .tryAddScoped(DefaultNavigationService, { scope: ServiceScope.container, baseArgs: [history] })
         .tryAddSingleton(DefaultUrlValueConverterFactory)
         .tryAddSingleton(DefaultUrlValueValidatorFactory)
         .tryAddSingleton(DefaultRouteParser)

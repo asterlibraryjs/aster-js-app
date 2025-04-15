@@ -1,5 +1,5 @@
 /** Values extracted from the url search */
-export type SearchValues = { readonly [k: string]: string | string[]; }
+export type SearchValues = { readonly [k: string]: string | ReadonlyArray<string>; }
 
 export namespace SearchValues {
 
@@ -37,7 +37,7 @@ export namespace SearchValues {
 
 
         for (const [key, value] of entries) {
-            if (Array.isArray(value)) {
+            if (isArray(value)) {
                 for (const v of value) {
                     search.append(key, v);
                 }
@@ -49,6 +49,10 @@ export namespace SearchValues {
 
         if (sort) search.sort();
         return search.toString();
+    }
+
+    function isArray(value: string | readonly string[]): value is readonly string[]{
+        return Array.isArray(value);
     }
 
     export function areEquals(first: SearchValues, second: SearchValues): boolean {

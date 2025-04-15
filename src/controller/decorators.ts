@@ -1,9 +1,10 @@
-import {asserts, Constructor, Func} from "@aster-js/core";
+import { asserts, Constructor, Func } from "@aster-js/core";
 import { resolveServiceId } from "@aster-js/ioc";
 import { RouteData, UrlValues } from "../routing";
 import { ControllerRoutingHandler } from "./controller-routing-handler";
 import { ControllerCallbackArgsTag, ControllerRoutingHandlerTag } from "./controller-routing-handler-tag";
-import {IApplicationPart} from "../abstraction";
+import { IApplicationPart } from "../abstraction";
+import { IAmbientRouteValues } from "../routing/abstraction/iambient-route-values";
 
 /** Decorate to enable binding route template to controller method call */
 export const RoutePath = (path: string) => {
@@ -27,7 +28,7 @@ export const RoutePath = (path: string) => {
 /** Decorate parameters of controller route calls to inject any values from the route
  * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire RouteValues bag
  */
- export const FromRoute = (name?: string) => {
+export const FromRoute = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
@@ -44,8 +45,14 @@ export const FromSearch = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
-        const accessor = ({ query }: RouteData) => name ? query[name] : structuredClone(query);
+        function accessor({ query }: RouteData, app: IApplicationPart) {
+            if(name) return query[name];
 
+            const result = structuredClone(query);
+            const ambientValues = app.services.get(IAmbientRouteValues, true).values;
+
+            return Object.assign(result, ambientValues);
+        }
         injectArgument(target, propertyKey, index, accessor);
     }
 }
@@ -58,8 +65,12 @@ export const FromUrl = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
-        const accessor = ({ values, query }: RouteData) => {
-            if (!name) return UrlValues.create(values, query);
+        const accessor = ({ values, query }: RouteData, app: IApplicationPart) => {
+            const ambientValues = app.services.get(IAmbientRouteValues, true);
+
+            if (!name) return UrlValues.create(values, query, ambientValues.values);
+
+            if (Reflect.has(ambientValues.values, name)) return ambientValues.values[name];
 
             if (Reflect.has(query, name)) return query[name];
 

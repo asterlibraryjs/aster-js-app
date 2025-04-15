@@ -14,3 +14,4 @@ export * from "./route-data";
 export * from "./default-routing-table";
 export * from "./part-route-data";
 export * from "./container-route-data";
+export * from "./ambient-route-values";
