@@ -1,5 +1,5 @@
 import { ServiceContract } from "@aster-js/ioc";
-import { IAmbientRouteValues, IAmbientRouteValuesObserver } from "./abstraction/iambient-route-values";
+import { IAmbientValues, IAmbientRouteValuesObserver } from "./abstraction/iambient-values";
 
 @ServiceContract(IAmbientRouteValuesObserver)
 export class HistoryAmbientRouteValuesObserver implements IAmbientRouteValuesObserver {
@@ -7,13 +7,13 @@ export class HistoryAmbientRouteValuesObserver implements IAmbientRouteValuesObs
     constructor(
         private readonly _location: Location,
         private readonly _history: History,
-        @IAmbientRouteValues private readonly _ambientRouteValues: IAmbientRouteValues
+        @IAmbientValues private readonly _ambientValues: IAmbientValues
     ) {
     }
 
     onDidAmbientValuesChange(): void {
         const url = new URL(this._location.href);
-        this._ambientRouteValues.coerceUrl(url);
+        this._ambientValues.coerceUrl(url);
         this._history.replaceState({}, "", url);
     }
 }

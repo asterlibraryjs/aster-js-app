@@ -9,7 +9,7 @@ import { RouteData } from "./route-data/route-data";
 import { IContainerRouteData } from "./abstraction";
 import { Route } from "./route";
 import { RoutingInvocationContext } from "./routing-invocation-context";
-import { IAmbientRouteValues, IAmbientRouteValuesObserver } from "./abstraction/iambient-route-values";
+import { IAmbientValues, IAmbientRouteValuesObserver } from "./abstraction/iambient-values";
 
 @ServiceContract(IContainerRouteData)
 export class ContainerRouteData implements IContainerRouteData, IRoutingObserver, IAmbientRouteValuesObserver {
@@ -25,7 +25,7 @@ export class ContainerRouteData implements IContainerRouteData, IRoutingObserver
 
     get query(): Readonly<SearchValues> { return this._effective.query; }
 
-    constructor(@IAmbientRouteValues private readonly _ambientRouteValues: IAmbientRouteValues) {
+    constructor(@IAmbientValues private readonly _ambientValues: IAmbientValues) {
         this._previous = RouteData.empty;
         this._current = RouteData.empty;
         this._effective = RouteData.empty;
@@ -56,7 +56,7 @@ export class ContainerRouteData implements IContainerRouteData, IRoutingObserver
     private updateEffectiveValues(): void {
         this._effective = {
             ...this._current,
-            query: { ...this._current.query, ...this._ambientRouteValues.values }
+            query: { ...this._current.query, ...this._ambientValues.values }
         };
     }
 }

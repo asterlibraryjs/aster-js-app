@@ -5,7 +5,7 @@ import {
     IApplicationPart,
     IRouter,
     IRoutingResult,
-    IAmbientRouteValues,
+    IAmbientValues,
     FromUrl,
     UrlValues,
     FromSearch,
@@ -74,7 +74,7 @@ describe("Controller", () => {
             builder.addController(CustomerViewController);
         }));
 
-        const ambientValues = app.services.get(IAmbientRouteValues, true);
+        const ambientValues = app.services.get(IAmbientValues, true);
         ambientValues.setValues({ "category": "cool" });
 
         await app.services.get(IRouter, true).eval("./customer/555/detail/33/hello%20world?id=99&filter=a&filter=b");

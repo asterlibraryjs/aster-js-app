@@ -1,10 +1,10 @@
 import { IApplicationPart } from "../abstraction/iapplication-part";
-import { IAmbientRouteValues, IAmbientRouteValuesObserver } from "./abstraction/iambient-route-values";
+import { IAmbientValues, IAmbientRouteValuesObserver } from "./abstraction/iambient-values";
 import { SearchValues } from "./route-data";
 import { ServiceContract } from "@aster-js/ioc";
 
-@ServiceContract(IAmbientRouteValues)
-export class AmbientRouteValues implements IAmbientRouteValues {
+@ServiceContract(IAmbientValues)
+export class AmbientValues implements IAmbientValues {
     private _values: SearchValues;
 
     get values(): SearchValues { return this._values; }

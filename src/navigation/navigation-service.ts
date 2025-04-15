@@ -1,7 +1,7 @@
 import { ServiceContract } from "@aster-js/ioc";
 import { IRouter } from "../routing";
 import { INavigationService } from "./inavigation-service";
-import { IAmbientRouteValues } from "../routing/abstraction/iambient-route-values";
+import { IAmbientValues } from "../routing/abstraction/iambient-values";
 
 @ServiceContract(INavigationService)
 export class DefaultNavigationService implements INavigationService {
@@ -9,7 +9,7 @@ export class DefaultNavigationService implements INavigationService {
     constructor(
         private readonly _history: History,
         @IRouter private readonly _router: IRouter,
-        @IAmbientRouteValues private readonly _ambientRouteValues: IAmbientRouteValues
+        @IAmbientValues private readonly _ambientValues: IAmbientValues
     ) {
     }
 
@@ -20,7 +20,7 @@ export class DefaultNavigationService implements INavigationService {
 
             const url = new URL(result.relativeUrl, location.origin);
             url.hash = hash;
-            this._ambientRouteValues.coerceUrl(url);
+            this._ambientValues.coerceUrl(url);
 
             if (replace) {
                 this._history.replaceState({}, "", url);

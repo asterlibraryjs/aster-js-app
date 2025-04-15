@@ -8,4 +8,4 @@ export * from "./irouting-table";
 export * from "./icontainer-route-data";
 export * from "./ipart-route-data";
 export * from "./irouting-observer";
-export * from "./iambient-route-values";
+export * from "./iambient-values";
