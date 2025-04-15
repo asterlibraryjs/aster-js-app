@@ -4,7 +4,7 @@ import { RouteData, UrlValues } from "../routing";
 import { ControllerRoutingHandler } from "./controller-routing-handler";
 import { ControllerCallbackArgsTag, ControllerRoutingHandlerTag } from "./controller-routing-handler-tag";
 import { IApplicationPart } from "../abstraction";
-import { IAmbientRouteValues } from "../routing/abstraction/iambient-route-values";
+import { IAmbientValues } from "../routing/abstraction/iambient-values";
 
 /** Decorate to enable binding route template to controller method call */
 export const RoutePath = (path: string) => {
@@ -49,7 +49,7 @@ export const FromSearch = (name?: string) => {
             if(name) return query[name];
 
             const result = structuredClone(query);
-            const ambientValues = app.services.get(IAmbientRouteValues, true).values;
+            const ambientValues = app.services.get(IAmbientValues, true).values;
 
             return Object.assign(result, ambientValues);
         }
@@ -66,7 +66,7 @@ export const FromUrl = (name?: string) => {
         asserts.ofType(propertyKey, "string");
 
         const accessor = ({ values, query }: RouteData, app: IApplicationPart) => {
-            const ambientValues = app.services.get(IAmbientRouteValues, true);
+            const ambientValues = app.services.get(IAmbientValues, true);
 
             if (!name) return UrlValues.create(values, query, ambientValues.values);
 
