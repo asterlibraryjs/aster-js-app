@@ -45,8 +45,14 @@ export const FromSearch = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
         asserts.ofType(propertyKey, "string");
 
-        const accessor = ({ query }: RouteData) => name ? query[name] : structuredClone(query);
+        function accessor({ query }: RouteData, app: IApplicationPart) {
+            if(name) return query[name];
 
+            const result = structuredClone(query);
+            const ambientValues = app.services.get(IAmbientRouteValues, true).values;
+
+            return Object.assign(result, ambientValues);
+        }
         injectArgument(target, propertyKey, index, accessor);
     }
 }

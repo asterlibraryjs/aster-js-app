@@ -5,6 +5,7 @@ import {
     IApplicationPart,
     IRouter,
     IRoutingResult,
+    IAmbientRouteValues,
     FromUrl,
     UrlValues,
     FromSearch,
@@ -38,6 +39,7 @@ describe("Controller", () => {
                 @FromRoute("customerId") customerRouteValueId: number,
                 @FromSearch("customerId") customerQueryId: string,
                 @FromUrl("customerId") customerParamId: number | string,
+                @FromUrl("category") category: string,
 
                 @FromRoute() allRouteValues: RouteValues,
                 @FromSearch() allQuery: SearchValues,
@@ -52,10 +54,17 @@ describe("Controller", () => {
                 assert.deepEqual(customerRouteValueId, 555, "customerRouteValueId");
                 assert.deepEqual(customerQueryId, undefined, "customerQueryId");
                 assert.deepEqual(customerParamId, 555, "customerParamId");
+                assert.equal(category, "cool", "category");
 
                 assert.deepEqual(allRouteValues, { id: 33, customerId: 555, text: "hello world" });
-                assert.deepEqual(allQuery, { id: "99", filter: ["a", "b"] });
-                assert.deepEqual(allParams, { id: "99", customerId: 555, filter: ["a", "b"], text: "hello world" });
+                assert.deepEqual(allQuery, { id: "99", filter: ["a", "b"], category: "cool" });
+                assert.deepEqual(allParams, {
+                    id: "99",
+                    customerId: 555,
+                    filter: ["a", "b"],
+                    text: "hello world",
+                    category: "cool"
+                });
 
                 return htmlResult(`<i>${text} ${routeValueId} !!</i>`, root);
             }
@@ -64,6 +73,9 @@ describe("Controller", () => {
         using app = await SinglePageApplication.start("bob", IAppConfigureHandler.create(builder => {
             builder.addController(CustomerViewController);
         }));
+
+        const ambientValues = app.services.get(IAmbientRouteValues, true);
+        ambientValues.setValues({ "category": "cool" });
 
         await app.services.get(IRouter, true).eval("./customer/555/detail/33/hello%20world?id=99&filter=a&filter=b");
 
