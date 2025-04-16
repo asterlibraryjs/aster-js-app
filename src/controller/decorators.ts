@@ -46,7 +46,7 @@ export const FromSearch = (name?: string) => {
         asserts.ofType(propertyKey, "string");
 
         function accessor({ query }: RouteData, app: IApplicationPart) {
-            if(name) return query[name];
+            if (name) return query[name];
 
             const result = structuredClone(query);
             const ambientValues = app.services.get(IAmbientValues, true).values;
@@ -70,9 +70,9 @@ export const FromUrl = (name?: string) => {
 
             if (!name) return UrlValues.create(values, query, ambientValues.values);
 
-            if (Reflect.has(ambientValues.values, name)) return ambientValues.values[name];
+            if (Reflect.has(ambientValues.values, name)) return structuredClone(ambientValues.values[name]);
 
-            if (Reflect.has(query, name)) return query[name];
+            if (Reflect.has(query, name)) return structuredClone(query[name]);
 
             return values[name];
         };
