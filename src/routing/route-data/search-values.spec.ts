@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { UrlValues } from "./url-values";
 import { SearchValues } from "./search-values";
 
 describe("SearchValues", () => {
@@ -7,7 +6,7 @@ describe("SearchValues", () => {
     type SearchValuesTestSuite = ReadonlyArray<{ readonly left: SearchValues, readonly right: SearchValues }>;
 
     ([
-        { left: { }, right: { } },
+        { left: {}, right: {} },
         { left: { id: [] }, right: { id: [] } },
         { left: { id: "1" }, right: { id: "1" } },
         { left: { id: ["1"] }, right: { id: ["1"] } },
@@ -35,4 +34,16 @@ describe("SearchValues", () => {
                 assert.isFalse(result);
             });
         });
+
+    it("Should stringify a SearchValues bag", () => {
+        const values: SearchValues = {
+            name: "bob",
+            id: ["01", "22"],
+            component: undefined
+        };
+
+        const result = SearchValues.stringify(values, true);
+
+        assert.equal(result, "id=01&id=22&name=bob");
+    });
 })

@@ -23,7 +23,7 @@ export namespace RoutingResult {
         if(Object.keys(search).length === 0) {
             return { success: true, relativeUrl: path.toString() };
         }
-        return { success: true, relativeUrl: `${path}?${SearchValues.toString(search)}` };
+        return { success: true, relativeUrl: `${path}?${SearchValues.stringify(search)}` };
     }
 
     export function failure(reason: string): FailureRoutingResult {

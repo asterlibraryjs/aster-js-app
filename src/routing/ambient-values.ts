@@ -16,11 +16,12 @@ export class AmbientValues implements IAmbientValues {
     coerceUrl(url: URL): void {
         const actual = SearchValues.parse(url.search);
         const newValues = { ...actual, ...this._values };
-        url.search = SearchValues.toString(newValues);
+
+        url.search = SearchValues.stringify(newValues);
     }
 
     setValues(values: SearchValues): void {
-        this._values = structuredClone(values);
+        this._values = SearchValues.merge(this._values, values);
 
         const observers: IAmbientRouteValuesObserver[] = [];
         let part: IApplicationPart | undefined = this._root;

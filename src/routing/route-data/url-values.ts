@@ -7,7 +7,7 @@ export type UrlValues = Record<string, string | string[] | number>;
 
 export namespace UrlValues {
     /** Create a new ParamValues by merging RouteValues and QueryValues */
-    export function create(values: RouteValues, query: SearchValues, ambient: SearchValues): SearchValues {
-        return Object.assign({}, values, query, ambient);
+    export function create(values: RouteValues, query: SearchValues, ambient: SearchValues) {
+        return structuredClone({ ...values, ...query, ...ambient });
     }
 }

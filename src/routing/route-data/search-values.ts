@@ -1,9 +1,14 @@
 /** Values extracted from the url search */
-export type SearchValues = { readonly [k: string]: string | ReadonlyArray<string>; }
+export type SearchValues = { readonly [k: string]: string | ReadonlyArray<string> | undefined; }
 
 export namespace SearchValues {
 
     export const empty: SearchValues = Object.freeze({});
+
+    export function merge(left: SearchValues, right: SearchValues): SearchValues {
+        const result = structuredClone({ ...left, ...right });
+        return Object.freeze(result);
+    }
 
     /** Parse and map a query search into a QueryValues bag */
     export function parse(search: string): SearchValues {
@@ -16,7 +21,7 @@ export namespace SearchValues {
         for (const [key, value] of searchParams) {
             if (Reflect.has(result, key)) {
                 const current = result[key];
-                if (Array.isArray(current)) {
+                if (isArray(current)) {
                     current.push(value);
                 }
                 else {
@@ -31,12 +36,18 @@ export namespace SearchValues {
         return Object.freeze(result);
     }
 
+    /** @deprecated use stringify */
     export function toString(query: SearchValues, sort?: boolean): string {
+        return stringify(query, sort);
+    }
+
+    export function stringify(query: SearchValues, sort?: boolean): string {
         const search = new URLSearchParams();
         const entries = Object.entries(query);
 
-
         for (const [key, value] of entries) {
+            if (typeof value === "undefined") continue;
+
             if (isArray(value)) {
                 for (const v of value) {
                     search.append(key, v);
@@ -51,10 +62,6 @@ export namespace SearchValues {
         return search.toString();
     }
 
-    function isArray(value: string | readonly string[]): value is readonly string[]{
-        return Array.isArray(value);
-    }
-
     export function areEquals(first: SearchValues, second: SearchValues): boolean {
         const firstEntries = Object.entries(first);
         const secondKeys = Object.keys(second);
@@ -66,22 +73,19 @@ export namespace SearchValues {
         for (const [key, firstValue] of firstEntries) {
             const secondValue = second[key];
 
-            if (typeof firstValue !== typeof secondValue) return false;
+            if (firstValue === secondValue) continue;
 
-            if (Array.isArray(firstValue)) {
-                if (!Array.isArray(secondValue) || firstValue.length !== secondValue.length) return false;
+            if (isArray(firstValue) && isArray(secondValue) && firstValue.length === secondValue.length) {
+                const firstSet = new Set(firstValue);
+                if (secondValue.every(x => firstSet.has(x))) continue;
+            }
 
-                const firstIndex = new Set(firstValue);
-                for (const secondItem of secondValue) {
-                    if (!firstIndex.has(secondItem)) return false;
-                }
-            }
-            else {
-                if (Array.isArray(secondValue)) return false;
-                if (firstValue !== secondValue) return false;
-            }
+            return false;
         }
-
         return true;
+    }
+
+    function isArray(value: string | readonly string[] | undefined): value is readonly string[] {
+        return Array.isArray(value);
     }
 }
