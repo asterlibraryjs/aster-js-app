@@ -4,6 +4,7 @@ import { Options, ServiceContract } from "@aster-js/ioc";
 import { IApplicationPartLifecycle, ApplicationPartLifecycleHooks } from "../../application-part/iapplication-part-lifecycle";
 import { IRouter } from "../abstraction/irouter";
 import { RoutingOptions } from "../routing-options";
+import { IAmbientValues } from "../abstraction";
 
 @ServiceContract(IApplicationPartLifecycle)
 export class HyperlinkNavigationHandler implements IDisposable {
@@ -11,7 +12,8 @@ export class HyperlinkNavigationHandler implements IDisposable {
 
     constructor(
         @Options(RoutingOptions) private readonly _options: RoutingOptions,
-        @IRouter private readonly _router: IRouter
+        @IRouter private readonly _router: IRouter,
+        @IAmbientValues  private readonly _ambientValues: IAmbientValues
     ) { }
 
     [ApplicationPartLifecycleHooks.setup](): Promise<void> {
@@ -54,6 +56,7 @@ export class HyperlinkNavigationHandler implements IDisposable {
         const result = await this._router.eval(url.pathname + url.search);
         if (result.success) {
             const stateUrl = new URL(result.relativeUrl + url.hash, location.origin);
+            this._ambientValues.coerceUrl(stateUrl);
             history.pushState({}, title, stateUrl);
         }
         else if (!this._options.assignLocationForUnhandled) {
