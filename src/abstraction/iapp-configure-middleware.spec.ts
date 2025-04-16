@@ -40,7 +40,7 @@ class LifetimeMiddleware implements IAppConfigureMiddleware {
     }
 }
 
-@UseConfigureMiddleware(LifetimeMiddleware, [55, 64])
+@UseConfigureMiddleware(LifetimeMiddleware, 55, 64)
 class MyAppConfigureHandler implements IAppConfigureHandler {
     [configure](builder: IApplicationPartBuilder): void {
         builder.configure(x => x.addSingleton(AppService));

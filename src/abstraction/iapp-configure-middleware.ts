@@ -23,7 +23,7 @@ export interface IAppConfigureMiddleware {
  * @param args Arguments to construct the middleware
  * @returns Returns method decorator
  */
-export function UseConfigureMiddleware<T extends IAppConfigureMiddleware, TArgs extends any[] = any[]>(type: Constructor<T, TArgs>, args: TArgs) {
+export function UseConfigureMiddleware<T extends IAppConfigureMiddleware, TArgs extends any[] = any[]>(type: Constructor<T, TArgs>, ...args: TArgs) {
     return <TCtor extends Constructor<IAppConfigureHandler>>(target: TCtor) => {
         return class extends target {
             [configure](builder: IApplicationPartBuilder, host?: IApplicationPart): void {
