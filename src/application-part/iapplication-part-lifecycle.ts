@@ -1,7 +1,7 @@
 import { Constructor } from "@aster-js/core";
 import { AppServiceId } from "../abstraction/app-service-id";
 import { IApplicationPart } from "../abstraction/iapplication-part";
-import { ILogger, IServiceProvider } from "@aster-js/ioc";
+import { ILogger } from "@aster-js/ioc";
 
 export const IApplicationPartLifecycle = AppServiceId<IApplicationPartLifecycle>("IApplicationPartLifecycle");
 
@@ -38,7 +38,7 @@ export namespace ApplicationPartLifecycleHooks {
         return false;
     }
 
-    function* filterRejectedReasons(results: PromiseSettledResult<void>[]): Iterable<any> {
+    function* filterRejectedReasons(results: PromiseSettledResult<unknown>[]): Iterable<any> {
         for (const result of results) {
             if (result.status === "rejected") yield result.reason;
         }
@@ -56,17 +56,18 @@ export type ApplicationPartLifecycleHook =
     | typeof ApplicationPartLifecycleHooks.activated
     | typeof ApplicationPartLifecycleHooks.deactivated
 
+
 /** Interface and service id that enumerate all default hooks for services in the context of an application part */
 export interface IApplicationPartLifecycle {
     /** Called during setup */
     [ApplicationPartLifecycleHooks.setup]?(app: IApplicationPart): Promise<void> | void;
     /** Called when the part is activated */
-    [ApplicationPartLifecycleHooks.activated]?(app: IApplicationPart): Promise<void> | void;
+    [ApplicationPartLifecycleHooks.activated]?(app: IApplicationPart): any;
     /** Called when the part is put in background */
     [ApplicationPartLifecycleHooks.deactivated]?(app: IApplicationPart): Promise<void> | void;
 }
 
-export type ApplicationPartLifecycleListener = (app: IApplicationPart) => Promise<void>;
+export type ApplicationPartLifecycleListener = (app: IApplicationPart) => any;
 
 function createApplicationPartLifecycleDecorator(hook: ApplicationPartLifecycleHook) {
     return function (target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<ApplicationPartLifecycleListener>): TypedPropertyDescriptor<ApplicationPartLifecycleListener> | void {

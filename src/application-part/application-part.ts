@@ -1,6 +1,6 @@
 import { AbortToken, Delayed } from "@aster-js/async";
 import { Constructor, DisposableHost, IDisposable } from "@aster-js/core";
-import { IIoCContainerBuilder, IIoCModule, ILogger, ServiceCollection, ServiceProvider } from "@aster-js/ioc";
+import { IIoCContainerBuilder, IIoCModule, ILogger, ServiceProvider } from "@aster-js/ioc";
 import { AppConfigureDelegate, configure, IAppConfigureHandler, IApplicationPart, IApplicationPartBuilder } from "../abstraction";
 import { Memoize } from "@aster-js/decorators";
 import { ApplicationPartLifecycleHooks } from "./iapplication-part-lifecycle";
@@ -184,7 +184,7 @@ export abstract class ApplicationPart extends DisposableHost implements IApplica
 
     protected abstract createAppBuilder(name: string): IApplicationPartBuilder;
 
-    protected dispose?(): void {
+    protected dispose(): void {
         this._current = [];
         IDisposable.safeDispose(this._children.values());
     }
