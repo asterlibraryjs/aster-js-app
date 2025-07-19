@@ -1,6 +1,10 @@
-import { IDisposable, DisposableHost, Tag } from "@aster-js/core";
+import { DisposableHost, IDisposable } from "@aster-js/core";
 import { ILogger, IServiceDescriptor, IServiceProvider, ServiceContract } from "@aster-js/ioc";
-import { ApplicationPartLifecycleHook, ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
+import {
+    ApplicationPartLifecycleHook,
+    ApplicationPartLifecycleHooks,
+    IApplicationPartLifecycle
+} from "./iapplication-part-lifecycle";
 import { IApplicationPart } from "../abstraction/iapplication-part";
 import { Iterables } from "@aster-js/iterators";
 
@@ -8,11 +12,10 @@ function cast(value: unknown): value is IDisposable {
     return typeof value === "object" && value !== null && Reflect.has(value, Symbol.dispose);
 }
 
-const activatedDisposables = Tag<IDisposable[] | undefined>("activatedDisposables");
-
 @ServiceContract(IApplicationPartLifecycle)
 export class ApplicationPartLifecycleWrapper extends DisposableHost implements IApplicationPartLifecycle {
     private readonly _instance: IApplicationPartLifecycle;
+    private _activatedDisposables: IDisposable[] | undefined;
 
     constructor(
         private readonly _descriptor: IServiceDescriptor,
@@ -24,18 +27,19 @@ export class ApplicationPartLifecycleWrapper extends DisposableHost implements I
     }
 
     async [ApplicationPartLifecycleHooks.setup](app: IApplicationPart): Promise<void> {
-        await this.invokeLifecycleMethod(ApplicationPartLifecycleHooks.setup, app);
+        const result = await this.invokeLifecycleMethod(ApplicationPartLifecycleHooks.setup, app);
+        const disposableSetups = this.extractDisposables(result);
+        this.registerForDispose(...disposableSetups);
     }
 
     async [ApplicationPartLifecycleHooks.activated](app: IApplicationPart): Promise<void> {
         const result = await this.invokeLifecycleMethod(ApplicationPartLifecycleHooks.activated, app);
-        activatedDisposables.set(this._instance, [...this.extractDisposables(result)]);
+        this._activatedDisposables = [...this.extractDisposables(result)];
     }
 
     async [ApplicationPartLifecycleHooks.deactivated](app: IApplicationPart): Promise<void> {
-        const disposables = activatedDisposables.get(this._instance);
-        IDisposable.safeDisposeAll(disposables);
-        activatedDisposables.delete(this._instance);
+        IDisposable.safeDisposeAll(this._activatedDisposables);
+        this._activatedDisposables = undefined;
 
         await this.invokeLifecycleMethod(ApplicationPartLifecycleHooks.deactivated, app);
     }
@@ -47,12 +51,11 @@ export class ApplicationPartLifecycleWrapper extends DisposableHost implements I
         if (callback) return callback.apply(this._instance, [app]);
     }
 
-    private *extractDisposables(result:unknown): Iterable<IDisposable>{
+    private* extractDisposables(result: unknown): Iterable<IDisposable> {
         if (result) {
             if (cast(result)) {
                 yield result;
-            }
-            else if (Iterables.cast(result)) {
+            } else if (Iterables.cast(result)) {
                 for (const value of result) {
                     if (cast(value)) yield value;
                 }
