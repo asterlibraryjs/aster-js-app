@@ -1,9 +1,24 @@
-
-import { IIoCContainerBuilder, IIoCModule, IServiceDescriptor, ServiceCollection, ServiceScope } from "@aster-js/ioc";
+import {
+    IIoCContainerBuilder,
+    IIoCModule,
+    IServiceDescriptor,
+    ServiceCollection,
+    ServiceLifetime,
+    ServiceScope
+} from "@aster-js/ioc";
 import { IApplicationPart } from "../abstraction";
 import { ApplicationPartLifecycleHooks, IApplicationPartLifecycle } from "./iapplication-part-lifecycle";
 import { ApplicationPartLifecycleWrapper } from "./application-part-lifecycle-wrapper";
-import { ContainerRouteData, DefaultRoutingHandlerInvoker, DefaultRouter, PartRouteData, DefaultRouteParser, DefaultRoutingTable, ContainerRouteDataRoutingObserverFactory, ContainerAmbientRouteValuesObserverFactory } from "../routing";
+import {
+    ContainerAmbientRouteValuesObserverFactory,
+    ContainerRouteData,
+    ContainerRouteDataRoutingObserverFactory,
+    DefaultRouteParser,
+    DefaultRouter,
+    DefaultRoutingHandlerInvoker,
+    DefaultRoutingTable,
+    PartRouteData
+} from "../routing";
 import { DefaultNavigationService } from "../navigation/navigation-service";
 import { DefaultUrlValueConverterFactory } from "../routing/url-value-converter/default-url-value-converter-factory";
 import { DefaultUrlValueValidatorFactory } from "../routing/url-value-validator/default-url-value-validator-factory";
@@ -11,9 +26,9 @@ import { DefaultUrlValueValidatorFactory } from "../routing/url-value-validator/
 export function createApplicationPartModule(app: IApplicationPart, builder: IIoCContainerBuilder): IIoCModule {
     return builder
         .configure(x => configureDefaultAppPartServices(app, x))
-        .setup(IApplicationPart, x => {
-            ApplicationPartLifecycleHooks.invoke(x, ApplicationPartLifecycleHooks.setup)
-        }, true)
+        .setup(IApplicationPart,
+            x => ApplicationPartLifecycleHooks.invoke(x, ApplicationPartLifecycleHooks.setup),
+            true)
         .build();
 }
 
@@ -31,23 +46,19 @@ function configureDefaultAppPartServices(app: IApplicationPart, services: Servic
         .tryAddScoped(DefaultRouter, { scope: ServiceScope.container })
         .tryAddScoped(DefaultRoutingHandlerInvoker, { scope: ServiceScope.container });
 
-    for (const desc of extractImplicitLifecycleImpl(services)) {
-        services.addTransient(ApplicationPartLifecycleWrapper, { baseArgs: [desc], scope: ServiceScope.container });
+    for (const desc of filterImplicitLifecycleImpl(services)) {
+        if (desc.lifetime === ServiceLifetime.transient) {
+            throw new Error("Application Part Lifecycle cannot be managed for transient services");
+        }
+        services.addScoped(ApplicationPartLifecycleWrapper, { baseArgs: [desc], scope: ServiceScope.container });
     }
 }
 
-function extractImplicitLifecycleImpl(services: ServiceCollection): IServiceDescriptor[] {
-    const explicitLifeCycles = new Set();
-    const implicitLifeCycles = [];
-
+function* filterImplicitLifecycleImpl(services: ServiceCollection): Iterable<IServiceDescriptor> {
     for (const desc of services) {
-        if (desc.serviceId === IApplicationPartLifecycle) {
-            explicitLifeCycles.add(desc.targetType);
-        }
-        else if (ApplicationPartLifecycleHooks.hasAny(desc.ctor)) {
-            implicitLifeCycles.push(desc);
+        if (ApplicationPartLifecycleHooks.hasAny(desc.ctor)
+            && desc.serviceId !== IApplicationPartLifecycle) {
+            yield desc;
         }
     }
-
-    return implicitLifeCycles.filter(x => !explicitLifeCycles.has(x.targetType));
 }
