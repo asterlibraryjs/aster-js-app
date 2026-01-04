@@ -6,9 +6,14 @@ import { ControllerRoute } from "./controller-route";
 
 export type ControllerRouteValueAccessor = (data: RouteData, app: IApplicationPart) => any;
 
+/**
+ * Represents a parameter of a controller route.
+ * The parameter is an argument of the controller method invoked.
+ * The accessor allows for the value coming from multiple sources like route, query, ambient value, etc.
+ */
 export type ControllerRouteParam = {
-    index: number;
-    accessor: ControllerRouteValueAccessor;
+    readonly index: number;
+    readonly accessor: ControllerRouteValueAccessor;
 }
 
 export namespace ControllerRouteParam {

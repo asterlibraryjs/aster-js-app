@@ -26,7 +26,7 @@ export const RoutePath = (path: string) => {
 
 
 /** Decorate parameters of controller route calls to inject any values from the route
- * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire RouteValues bag
+ * @param name Name of the parameter to retrieve and inject the value. If not provided, the value injected the entire RouteValues bag
  */
 export const FromRoute = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
@@ -39,7 +39,7 @@ export const FromRoute = (name?: string) => {
 }
 
 /** Decorate parameters of controller route calls to inject any values from the query
- * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire QueryValues bag
+ * @param name Name of the parameter to retrieve and inject the value. If not provided, the value injected the entire QueryValues bag
  */
 export const FromSearch = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
