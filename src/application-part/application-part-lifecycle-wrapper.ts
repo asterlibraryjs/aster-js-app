@@ -6,11 +6,8 @@ import {
     IApplicationPartLifecycle
 } from "./iapplication-part-lifecycle";
 import { IApplicationPart } from "../abstraction/iapplication-part";
-import { Iterables } from "@aster-js/iterators";
-
-function cast(value: unknown): value is IDisposable {
-    return typeof value === "object" && value !== null && Reflect.has(value, Symbol.dispose);
-}
+import { Query } from "@aster-js/iterators";
+import { AsyncResultStream } from "../Utils/async-result-stream";
 
 @ServiceContract(IApplicationPartLifecycle)
 export class ApplicationPartLifecycleWrapper extends DisposableHost implements IApplicationPartLifecycle {
@@ -28,13 +25,18 @@ export class ApplicationPartLifecycleWrapper extends DisposableHost implements I
 
     async [ApplicationPartLifecycleHooks.setup](app: IApplicationPart): Promise<void> {
         const result = await this.invokeLifecycleMethod(ApplicationPartLifecycleHooks.setup, app);
-        const disposableSetups = this.extractDisposables(result);
-        this.registerForDispose(...disposableSetups);
+
+        const stream = new AsyncResultStream<IDisposable>(result)
+        for await (const item of stream) {
+            this.registerForDispose(item);
+        }
     }
 
     async [ApplicationPartLifecycleHooks.activated](app: IApplicationPart): Promise<void> {
         const result = await this.invokeLifecycleMethod(ApplicationPartLifecycleHooks.activated, app);
-        this._activatedDisposables = [...this.extractDisposables(result)];
+
+        const stream = new AsyncResultStream<IDisposable>(result)
+        this._activatedDisposables = await Query(stream).toArray();
     }
 
     async [ApplicationPartLifecycleHooks.deactivated](app: IApplicationPart): Promise<void> {
@@ -49,17 +51,5 @@ export class ApplicationPartLifecycleWrapper extends DisposableHost implements I
 
         const callback = this._instance[hook];
         if (callback) return callback.apply(this._instance, [app]);
-    }
-
-    private* extractDisposables(result: unknown): Iterable<IDisposable> {
-        if (result) {
-            if (cast(result)) {
-                yield result;
-            } else if (Iterables.cast(result)) {
-                for (const value of result) {
-                    if (cast(value)) yield value;
-                }
-            }
-        }
     }
 }

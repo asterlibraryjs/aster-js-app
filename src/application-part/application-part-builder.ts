@@ -4,7 +4,7 @@ import { IIoCContainerBuilder, IIoCModule, IoCModuleConfigureDelegate, IoCModule
 import { IApplicationPartBuilder, IApplicationPart, IAppConfigureHandler, AppConfigureDelegate } from "../abstraction";
 import { ServiceRouterAction, ServiceRoutingHandler, ActionRoutingHandler, RouterAction, IRoutingHandler } from "../routing";
 import { PartLoaderRoutingHandler } from "../routing/routing-handlers/part-loader-routing-handler";
-import { ControllerRoutingHandlerTag } from "../controller/controller-routing-handler-tag";
+import { ControllerRoute } from "../controller/controller-route";
 import { SetupIoCContainerBuilder } from "./setup-application-part-builder";
 
 export abstract class ApplicationPartBuilder implements IApplicationPartBuilder {
@@ -30,7 +30,7 @@ export abstract class ApplicationPartBuilder implements IApplicationPartBuilder 
     }
 
     addController<T>(ctor: Constructor<T>): IApplicationPartBuilder {
-        const handlers = ControllerRoutingHandlerTag.get(ctor.prototype);
+        const handlers = ControllerRoute.resolveRoutingHandlers(ctor);
         this.configure(x => {
             const serviceId = resolveServiceId(ctor);
             x.addScoped(serviceId, ctor, { scope: ServiceScope.container });

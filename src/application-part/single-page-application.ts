@@ -7,6 +7,7 @@ import { ApplicationPartBuilder } from "./application-part-builder";
 import { ChildApplicationPartBuilder } from "./child-application-part";
 import { DefaultApplicationConfigureHandler } from "./default-application-configure-handler";
 import { INavigationService } from "../navigation";
+import { IRouter } from "../routing";
 
 class SinglePageAppBuilder extends ApplicationPartBuilder {
 

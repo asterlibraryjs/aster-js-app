@@ -1,10 +1,17 @@
-import { asserts, Constructor, Func } from "@aster-js/core";
-import { resolveServiceId } from "@aster-js/ioc";
+import { asserts, Constructor } from "@aster-js/core";
 import { RouteData, UrlValues } from "../routing";
-import { ControllerRoutingHandler } from "./controller-routing-handler";
-import { ControllerCallbackArgsTag, ControllerRoutingHandlerTag } from "./controller-routing-handler-tag";
+import { ControllerRouteParam } from "./controller-route-param";
 import { IApplicationPart } from "../abstraction";
 import { IAmbientValues } from "../routing/abstraction/iambient-values";
+import { ControllerConfigTag } from "./controller-config-tag";
+import { ControllerRoute } from "./controller-route";
+
+/** Optional, configure a controller */
+export const Controller = (baseRoute: string = "/") => {
+    return <ClassDecorator>function(target) {
+        ControllerConfigTag.set(target, { baseRoute: baseRoute });
+    }
+}
 
 /** Decorate to enable binding route template to controller method call */
 export const RoutePath = (path: string) => {
@@ -13,20 +20,13 @@ export const RoutePath = (path: string) => {
 
         const callback = <any>descriptor.value;
         if (typeof callback !== "function") throw new Error();
-
-        const serviceId = resolveServiceId(<Constructor>target.constructor);
-        class RouteControllerRoutingHandler extends ControllerRoutingHandler {
-            constructor() {
-                super(path, <string>propertyKey, serviceId, callback);
-            }
-        }
-        ControllerRoutingHandlerTag.get(target).push(RouteControllerRoutingHandler);
+        ControllerRoute.add(path, <Constructor>target.constructor, propertyKey, callback);
     }
 }
 
 
 /** Decorate parameters of controller route calls to inject any values from the route
- * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire RouteValues bag
+ * @param name Name of the parameter to retrieve and inject the value. If not provided, the value injected the entire RouteValues bag
  */
 export const FromRoute = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
@@ -34,12 +34,12 @@ export const FromRoute = (name?: string) => {
 
         const accessor = ({ values }: RouteData) => name ? values[name] : structuredClone(values);
 
-        injectArgument(target, propertyKey, index, accessor);
+        ControllerRouteParam.add(target, propertyKey, index, accessor);
     }
 }
 
 /** Decorate parameters of controller route calls to inject any values from the query
- * @param name Name of the parameter to reteive and inject the value. If not provided, the value injected the entire QueryValues bag
+ * @param name Name of the parameter to retrieve and inject the value. If not provided, the value injected the entire QueryValues bag
  */
 export const FromSearch = (name?: string) => {
     return <ParameterDecorator>function (target: object, propertyKey: string | symbol, index: number) {
@@ -53,7 +53,7 @@ export const FromSearch = (name?: string) => {
 
             return Object.assign(result, ambientValues);
         }
-        injectArgument(target, propertyKey, index, accessor);
+        ControllerRouteParam.add(target, propertyKey, index, accessor);
     }
 }
 
@@ -77,10 +77,6 @@ export const FromUrl = (name?: string) => {
             return values[name];
         };
 
-        injectArgument(target, propertyKey, index, accessor);
+        ControllerRouteParam.add(target, propertyKey, index, accessor);
     }
-}
-
-export function injectArgument(target: object, propertyKey: string, index: number, accessor: (data: RouteData, app: IApplicationPart) => any): void {
-    ControllerCallbackArgsTag.get(target).add(propertyKey, { index, accessor });
 }

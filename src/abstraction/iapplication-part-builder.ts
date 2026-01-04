@@ -31,5 +31,8 @@ export interface IApplicationPartBuilder extends IIoCContainerBuilder {
      */
     addPart(path: string, configHandler: Constructor<IAppConfigureHandler> | AppConfigureDelegate): IApplicationPartBuilder;
 
+    /**
+     * Register a service that act as controller by declaring routes using the @RoutePath decorator on its methods
+     */
     addController(ctor: Constructor): IApplicationPartBuilder;
 }
